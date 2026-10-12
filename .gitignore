@@ -239,3 +239,6 @@ CLAUDE.md
 runs/
 # per-deployment host addresses (copy from deploy/hosts.env.example)
 deploy/hosts.env
+# presentation decks (built outside git; see README doc index)
+*.ppt
+*.pptx
