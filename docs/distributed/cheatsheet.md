@@ -39,6 +39,9 @@
 
 ## 1. 최초 세팅
 
+처음부터 새 인스턴스에 구성하는 전체 절차와 검증 스크립트(`deploy/scripts/verify-*.sh`)는
+[porting-guide.md](porting-guide.md)에 있다. 스크립트가 쓰는 B 주소는 `deploy/hosts.env`에 적는다.
+
 ### [A] sim host
 
 ```bash

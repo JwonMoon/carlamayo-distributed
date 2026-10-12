@@ -80,6 +80,7 @@
 
 | 2026-09-30 | 문서 정리 | `docs/distributed/`(이동) | 이 포크에서 추가한 문서·ADR·다이어그램을 `docs/distributed/`로 옮겨 업스트림 원본(`docs/*.md`)과 구분. 링크 전부 갱신 | 업스트림 문서와 한눈에 구분, 동기화 시 충돌 방지 | - |
 | 2026-09-30 | 문서(데모 장표) | `docs/distributed/demo-overview.pptx`, `demo-overview-short.pptx` | 라이브 데모 오버뷰 PPT 두 벌: 요약(6장: 시스템 구성, 원래 open-loop 환경 비교, 보여줄 것, 시사점, 용어집)과 전체(15장: + 데이터 교환, 진행 순서·명령, 측정 체계, 예상 병목, 다음 단계, 변경 요약). 실측 칸은 `[실측 후 기입]`. 비교표의 "공식 Alpamayo open-loop 테스트" 열은 NVIDIA 공식 노트북 환경(PhysicalAI-AV 클립 재생, minADE)이며 Carlamayo 자체 open-loop와 구분 | 데모 발표 자료 요청 | - |
+| 2026-10-12 | 포팅 가이드·검증 스크립트 | `docs/distributed/porting-guide.md`(신규), `deploy/hosts.env.example`, `deploy/scripts/hosts-env.sh`, `verify-sim-host.sh`, `verify-inference-host.sh`, `tools/fetch_server_profile.sh`, `sync-dataset-to-inference-host.sh`, `deploy/systemd/*.service`, `tests/test_deploy_scripts.py`, `README.md` | 새 인스턴스 두 대에 처음부터 구성하는 매뉴얼. 호스트 주소를 `deploy/hosts.env` 한 곳으로 모으고(스크립트가 읽음, git 제외), A/B 각각 PASS/FAIL로 환경·연결·서빙을 점검하는 검증 스크립트 추가. 하드코딩 IP 제거 | 다른 사람이 깃허브만 보고 포팅 | - |
 | 2026-10-01 | 장표(검증 반영) | `docs/distributed/demo-overview*.pptx` | closed-loop 시연을 동기(주행 품질)와 비동기(실시간성·궤적 나이)로 나눠 명령·설명 수정, navigation 지시 지속·해제와 확인 방법 추가, Esc 저장 안내 | 실제 검증에서 배운 것 반영 | - |
 | 2026-10-01 | 문서(데모 순서서) | `docs/distributed/demo-runbook.md`(신규), `cheatsheet.md` §2·§5·§9, `validation-checklist.md`, `README.md` | 데모 당일 순서서: 단계별 명령·기대 출력·확인 팁·자주 겪은 오류. 치트시트에 서버 확인(`ss`), 동기/비동기 선택, navigation 지시 지속·해제, Esc 저장, 프록시 행 추가. 체크리스트 2~4단계 ☑, 6단계 동기로 재지정 | 실제 인스턴스 검증에서 배운 것 반영 | - |
 | 2026-10-01 | pygame 창 크기 | `module/config.py`, `module/pygame_ui.py`, `carlamayo.py`, `tests/test_pygame_ui_scale.py` | 기본 창을 1280×900에서 960×675(3/4)로. 패널 높이·글꼴·여백이 창 폭에 비례하도록 `_px()` 스케일 도입. `--pygame-size WxH`로 실행 시 변경 | DCV 화면에서 창이 너무 큼 | - |
@@ -89,4 +90,4 @@
 | 2026-10-01 | 문서(다이어그램) | `docs/distributed/distributed-architecture.md` §2, `diagrams/split-deployment.svg`, `diagrams/README.md`, 데모 장표 2벌 | 배포 다이어그램에 빠져 있던 응답 경로(B→A ③)와 제어 명령 경로(클라이언트→CARLA ④)를 명시하고 ①~④로 closed-loop 한 사이클을 번호 매김. 장표의 구성도는 계층 스택(AWS 인스턴스 → OS·드라이버 → 런타임 → 모델 → 실행 프로세스)으로 교체하고 배포 다이어그램 장표를 추가 | 사용자 지적: 추론 결과가 시뮬레이터로 돌아가는 경로가 그림에 없음 | - |
 | 2026-09-30 | 궤적 샘플 수 | `alpamayo_server.py`, `module/remote/client.py`, `module/adapters/base.py`, `module/loops/closed_loop.py` | 서버 옵션 `--num-traj-samples N`이 `config.NUM_TRAJ_SAMPLES`를 덮어씀. 클라이언트는 핸드셰이크 검증 항목에서 이 값을 빼고 서버 값을 `adapter.num_traj_samples`로 받아 씀(`runtime_summary`에 표시). closed-loop 출력 `Selected traj sample: k/S-1`은 실제 샘플 수 기준 | 여러 궤적 후보를 화면에 그리는 실험을 설정 파일 수정 없이 | - |
 
-> 위 변경 후 `python -m pytest -q tests`: **163 passed** (2026-10-01, pygame 창 스케일 테스트 8개 추가).
+> 위 변경 후 `python -m pytest -q tests`: **175 passed** (2026-10-12, 배포 스크립트 테스트 12개 추가).

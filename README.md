@@ -26,6 +26,7 @@
 
 | 문서 | 내용 |
 |---|---|
+| [docs/distributed/porting-guide.md](docs/distributed/porting-guide.md) | **새 인스턴스 두 대에 처음부터 구성하는 매뉴얼**: 사양·AMI·보안그룹·설치·검증 스크립트·완료 체크리스트 |
 | [docs/distributed/architecture-analysis.md](docs/distributed/architecture-analysis.md) | 현재(단일 호스트) 구조 분석: 배포·모듈 의존·시퀀스·데이터 크기·타이밍·UI |
 | [docs/distributed/distributed-architecture.md](docs/distributed/distributed-architecture.md) | 분리 후 구조, 인스턴스 간 데이터 교환 명세, 전/후 비교, RPC 계약 초안, 리스크 |
 | [docs/distributed/adr/](docs/distributed/adr/README.md) | 설계 결정 기록: 왜 이렇게 골랐고 다른 후보는 왜 아닌지 |

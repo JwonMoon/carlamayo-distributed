@@ -237,3 +237,5 @@ CLAUDE.md
 
 # Per-run output folders (videos, logs, profiles)
 runs/
+# per-deployment host addresses (copy from deploy/hosts.env.example)
+deploy/hosts.env

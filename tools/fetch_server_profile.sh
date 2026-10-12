@@ -3,17 +3,18 @@
 #
 #   tools/fetch_server_profile.sh <run_id> [user@host] [remote_repo_dir]
 #
-# Run on the sim host after a closed/live-open/open-loop run. Defaults match the
-# AWS layout in docs/distributed/cheatsheet.md; override with arguments or environment variables
-#   INFERENCE_HOST=ubuntu@172.31.20.213  REMOTE_REPO=~/carlamayo  RUNS_ROOT=runs
+# Run on the sim host after a closed/live-open/open-loop run. The host comes from
+# deploy/hosts.env (INFERENCE_HOST_IP, INFERENCE_SSH_USER, REMOTE_REPO); override with
+# arguments or environment variables INFERENCE_HOST=user@ip REMOTE_REPO=~/carlamayo RUNS_ROOT=runs
 set -euo pipefail
 
+cd "$(dirname "$0")/.."
+# shellcheck disable=SC1091
+source deploy/scripts/hosts-env.sh   # deploy/hosts.env -> INFERENCE_HOST, REMOTE_REPO
 RUN_ID="${1:?usage: $0 <run_id> [user@host] [remote_repo_dir]}"
-HOST="${2:-${INFERENCE_HOST:-ubuntu@172.31.20.213}}"
+HOST="${2:-${INFERENCE_HOST:?set INFERENCE_HOST or deploy/hosts.env}}"
 REMOTE_REPO="${3:-${REMOTE_REPO:-~/carlamayo}}"
 RUNS_ROOT="${RUNS_ROOT:-runs}"
-
-cd "$(dirname "$0")/.."
 mkdir -p "$RUNS_ROOT/$RUN_ID"
 rsync -avz --progress \
   "$HOST:$REMOTE_REPO/$RUNS_ROOT/$RUN_ID/" \

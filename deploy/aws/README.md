@@ -1,5 +1,8 @@
 # AWS 배포 메모 (두 인스턴스)
 
+> 새 인스턴스에 처음부터 구성하려면 [docs/distributed/porting-guide.md](../../docs/distributed/porting-guide.md)를 따른다.
+> 아래 IP는 원래 구성의 값이다. 스크립트는 `deploy/hosts.env`(`hosts.env.example` 복사)에서 주소를 읽는다.
+
 | 역할 | 인스턴스 | 내부 IP | GPU | 사용 포트 |
 |---|---|---|---|---|
 | A. sim host | g5.2xlarge | `172.31.38.219` | A10G 24 GB | CARLA 2000~2002, TM 8000 (모두 localhost), DCV 8443 |
