@@ -101,7 +101,7 @@ DCV 클라이언트로 `https://<A 공인 IP>:8443` 접속. DCV 없이도 open-l
 ```bash
 git clone https://github.com/jwonmoon/carlamayo-my-distributed.git ~/carlamayo
 cd ~/carlamayo
-git checkout claude/nice-planck-dec7fo        # 기본 브랜치. 이후 main으로 바뀌면 그쪽
+git checkout main                              # 기본 브랜치(main). 개발 브랜치는 claude/nice-planck-dec7fo
 git log -1 --oneline                           # 두 인스턴스가 같은 커밋인지 메모
 cp deploy/hosts.env.example deploy/hosts.env
 nano deploy/hosts.env                          # SIM_HOST_IP, INFERENCE_HOST_IP, INFERENCE_SSH_USER 를 자기 값으로

@@ -13,7 +13,7 @@
 
 | 상태 | 항목 | 어디 | 명령 / 확인 | 통과 기준 |
 |---|---|---|---|---|
-| ☑ | 저장소 클론 + 브랜치 | A, B | `git clone ... ~/carlamayo && git checkout claude/nice-planck-dec7fo` | 두 곳 모두 같은 커밋 (`git log -1`) |
+| ☑ | 저장소 클론 + 브랜치 | A, B | `git clone ... ~/carlamayo` (기본 브랜치 main) | 두 곳 모두 같은 커밋 (`git log -1`) |
 | ☑ | A 셋업 | A | `deploy/scripts/setup-sim-host.sh` → `source ~/.bashrc` | `ls ~/carla/CarlaUE4.sh`, `echo $CARLA_ROOT`, `source venv-sim/bin/activate && python -c "import carla, grpc, cv2, pygame"` |
 | ☑ | B 셋업 | B | `deploy/scripts/setup-inference-host.sh` | `python -c "import alpamayo1_5, grpc, cv2, bitsandbytes"` → 오류 없음 (2026-09-30 확인: `B deps OK`) |
 | ☑ | HF 로그인 | B | `hf auth login` | `hf auth whoami`에 계정 표시. 모델 게이트 승인 상태 |
