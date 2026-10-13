@@ -70,7 +70,7 @@ flowchart LR
     MODEL -.-> GPU1
 ```
 
-> [현재 구조 그림](architecture-analysis.md#2-배포-다이어그램-현재-한-호스트)과 같은 컴포넌트 집합으로 그렸다. 어댑터 상자가 `RemoteAlpamayoAdapter`(gRPC 클라이언트, torch 없음)로 바뀌고, 모델 상자가 B의 `alpamayo_server.py` 프로세스로 옮겨 가며, 그 사이를 양방향 gRPC 화살표(② 요청 / ③ 응답)가 잇는다. 운영자 접속·DCV·파일 복사 경로는 이 그림에서 빼고 §2.1 표와 치트시트에만 둔다. 이전 버전은 [diagrams/backup/](diagrams/backup/)에 있다.
+> [현재 구조 그림](architecture-analysis.md#2-배포-다이어그램-현재-한-호스트)과 같은 컴포넌트 집합으로 그렸다. 어댑터 상자가 `RemoteAlpamayoAdapter`(gRPC 클라이언트, torch 없음)로 바뀌고, 모델 상자가 B의 `alpamayo_server.py` 프로세스로 옮겨 가며, 그 사이를 양방향 gRPC 화살표(② 요청 / ③ 응답)가 잇는다. 운영자 접속·DCV·파일 복사 경로는 이 그림에서 빼고 §2.1 표와 치트시트에만 둔다. 2026-10-01 이전 버전은 git 이력에 있다(`diagrams/backup/`, 2026-10-13 삭제).
 
 ### 2.1 네트워크·보안그룹 규칙
 

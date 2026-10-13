@@ -87,7 +87,7 @@ flowchart LR
     MODEL -.-> GPU1
 ```
 
-> 이 그림과 [분리 후 그림](distributed-architecture.md#2-배포-다이어그램-분리-후)은 같은 컴포넌트 집합으로 그렸다. 달라지는 것은 어댑터 상자(로컬 `AlpamayoAdapter` → `RemoteAlpamayoAdapter`)와 모델 상자의 위치(같은 프로세스 → B의 서버 프로세스), 그리고 GPU 두 개가 서로 다른 호스트에 있다는 점뿐이다. 번호 ①~④는 closed-loop 한 사이클이며 두 그림에서 같다. 이전 버전은 [diagrams/backup/](diagrams/backup/)에 있다.
+> 이 그림과 [분리 후 그림](distributed-architecture.md#2-배포-다이어그램-분리-후)은 같은 컴포넌트 집합으로 그렸다. 달라지는 것은 어댑터 상자(로컬 `AlpamayoAdapter` → `RemoteAlpamayoAdapter`)와 모델 상자의 위치(같은 프로세스 → B의 서버 프로세스), 그리고 GPU 두 개가 서로 다른 호스트에 있다는 점뿐이다. 번호 ①~④는 closed-loop 한 사이클이며 두 그림에서 같다. 2026-10-01 이전 버전은 git 이력에 있다(`diagrams/backup/`, 2026-10-13 삭제).
 
 **GPU 공유 문제.** CARLA 서버와 모델이 같은 GPU에 있으면 VRAM이 부족해지기 쉽다.
 업스트림은 이를 `--quantization`(4-bit), `--oom-free`(1.5 전용 레이어 스트리밍),
@@ -387,8 +387,8 @@ VQA 모드는 궤적을 만들지 않으므로 **에고 차량은 계속 정지*
 
 | 환경 | Python | 주요 패키지 | 용도 | 정의 파일 |
 |---|---|---|---|---|
-| `venv-carla` | 3.10 | carla 0.9.16, numpy, opencv, pygame | 데이터 수집 | `requirements-carla.txt` |
-| `a_venv` | 3.12 | torch 2.8, transformers 4.57.1, flash-attn, alpamayo1_5 등 | open-loop | `pyproject.toml`, `requirements-alpamayo.txt` |
+| `venv-carla` | 3.10 | carla 0.9.16, numpy, opencv, pygame | 데이터 수집 | `requirements-carla.txt`(현재 `requirements-sim.txt`) |
+| `a_venv` | 3.12 | torch 2.8, transformers 4.57.1, flash-attn, alpamayo1_5 등 | open-loop | `pyproject.toml`, `requirements-alpamayo.txt`(현재 `requirements-inference.txt`) |
 | `a_carla_venv` | 3.12 | 위 둘의 합집합 | closed-loop, live-open | 위 셋 전부 |
 
 | 모델 | VRAM(bf16) | 카메라 | navigation/CFG | VQA | OOM-free |

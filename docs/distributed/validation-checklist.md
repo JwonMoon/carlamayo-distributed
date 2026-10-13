@@ -1,6 +1,6 @@
 # 분리 환경 검증 체크리스트 (로드맵 10단계)
 
-실제 두 인스턴스(A: g5.2xlarge `172.31.38.219`, B: g6e.xlarge `172.31.20.213`)에서 코드가
+실제 두 인스턴스(A: g5.2xlarge `<A_IP>`, B: g6e.xlarge `<B_IP>`)에서 코드가
 동작하는지 **순서대로** 확인하는 절차다. 앞 단계가 통과해야 뒤 단계가 의미 있다. 각 단계의
 체크박스와 "기록" 칸을 진행하면서 채우고, 막히면 그 단계의 터미널 출력과
 `runs/<run_id>/log.txt`를 공유한다. 명령의 상세는 [demo-runbook.md](demo-runbook.md).
@@ -17,8 +17,8 @@
 | ☑ | A 셋업 | A | `deploy/scripts/setup-sim-host.sh` → `source ~/.bashrc` | `ls ~/carla/CarlaUE4.sh`, `echo $CARLA_ROOT`, `source venv-sim/bin/activate && python -c "import carla, grpc, cv2, pygame"` |
 | ☑ | B 셋업 | B | `deploy/scripts/setup-inference-host.sh` | `python -c "import alpamayo1_5, grpc, cv2, bitsandbytes"` → 오류 없음 (2026-09-30 확인: `B deps OK`) |
 | ☑ | HF 로그인 | B | `hf auth login` | `hf auth whoami`에 계정 표시. 모델 게이트 승인 상태 |
-| ☑ | 보안그룹 | AWS 콘솔 | B에 A의 그룹 추가 또는 22·50051 규칙 추가 (관리자 요청 → 2026-10-01 반영 확인) | A에서 `nc -zv 172.31.20.213 22` → `succeeded!` |
-| ☑ | SSH A→B | A | `~/.ssh/config`에 pem 지정 후 `ssh ubuntu@172.31.20.213 hostname` | `ip-172-31-20-213` |
+| ☑ | 보안그룹 | AWS 콘솔 | B에 A의 그룹 추가 또는 22·50051 규칙 추가 (관리자 요청 → 2026-10-01 반영 확인) | A에서 `nc -zv <B_IP> 22` → `succeeded!` |
+| ☑ | SSH A→B | A | `~/.ssh/config`에 pem 지정 후 `ssh ubuntu@<B_IP> hostname` | `ip-<B_IP를 -로 쓴 호스트명>` |
 
 기록: A 셋업 성공, B 셋업은 `ensurepip` 버그로 중단 → 수동 `uv pip` 설치로 완료(스크립트는 `aa25b3d`에서 수정).
 
@@ -28,8 +28,8 @@
 
 | 상태 | 항목 | 어디 | 명령 | 통과 기준 |
 |---|---|---|---|---|
-| ☑ | 가짜 서버 기동 | B | `source a_venv/bin/activate && python alpamayo_server.py --fake --host 172.31.20.213 --port 50051` | 마지막 줄 `SERVING Fake Alpamayo ... warmed_up=True` |
-| ☑ | 포트 | A | `nc -zv 172.31.20.213 50051` | `succeeded!` |
+| ☑ | 가짜 서버 기동 | B | `source a_venv/bin/activate && python alpamayo_server.py --fake --host <B_IP> --port 50051` | 마지막 줄 `SERVING Fake Alpamayo ... warmed_up=True` |
+| ☑ | 포트 | A | `nc -zv <B_IP> 50051` | `succeeded!` |
 | ☑ | 왕복 | A | [deploy/aws/README.md](../../deploy/aws/README.md)의 스니펫 | `OK (1, 1, 1, 64, 3) rtt=... request=...MB` |
 
 기록할 것: `rtt`(초), `request`(MB). 1080p JPEG 16장이면 5~8 MB, VPC 내부 왕복은 0.1~0.3 s 예상.
@@ -38,7 +38,7 @@
 
 실패 시 원인 후보: 보안그룹(멈춤), `--host` 바인드 IP 오타(refused), A의 grpcio 미설치(import 오류),
 **B에서 서버를 안 띄움**(클라이언트가 `no inference server at ... after 30s`로 종료. 2026-10-01에 실제로 겪음 → B에서
-`ss -ltnp | grep 50051`로 먼저 확인), A의 `https_proxy` 환경변수(gRPC가 프록시로 나감 → `export no_grpc_proxy=172.31.20.213`).
+`ss -ltnp | grep 50051`로 먼저 확인), A의 `https_proxy` 환경변수(gRPC가 프록시로 나감 → `export no_grpc_proxy=<B_IP>`).
 
 ---
 
@@ -46,7 +46,7 @@
 
 | 상태 | 항목 | 어디 | 명령 | 통과 기준 |
 |---|---|---|---|---|
-| ☑ | 서버 기동 | B | `tmux new -s server` 안에서 `python alpamayo_server.py --version 1.5 --host 172.31.20.213 --port 50051` | `SERVING Alpamayo 1.5 ... cameras=4`. 첫 실행은 22 GB 다운로드 + 로드 + 워밍업으로 수 분~수십 분 |
+| ☑ | 서버 기동 | B | `tmux new -s server` 안에서 `python alpamayo_server.py --version 1.5 --host <B_IP> --port 50051` | `SERVING Alpamayo 1.5 ... cameras=4`. 첫 실행은 22 GB 다운로드 + 로드 + 워밍업으로 수 분~수십 분 |
 | ☑ | VRAM | B | `nvidia-smi` | 약 21~24 GB 사용 (값 기록 `[ ]`) |
 
 기록할 것: 로드 시간(로그의 `Model loaded in ...s`), 워밍업 시간, VRAM.
@@ -70,7 +70,7 @@
 
 | 상태 | 항목 | 어디 | 명령 | 통과 기준 |
 |---|---|---|---|---|
-| ☑ | 원격 open-loop | A | `python carlamayo.py --loop open --version 1.5 --data-root carla_data --inference-server 172.31.20.213:50051 --run-tag remote-jpeg` | 프레임마다 `Inference: X.XXs` 출력, `runs/<run_id>/`에 mp4·`predictions.npz`·`profile_client*.csv` |
+| ☑ | 원격 open-loop | A | `python carlamayo.py --loop open --version 1.5 --data-root carla_data --inference-server <B_IP>:50051 --run-tag remote-jpeg` | 프레임마다 `Inference: X.XXs` 출력, `runs/<run_id>/`에 mp4·`predictions.npz`·`profile_client*.csv` |
 | ◐ | 서버 프로파일 회수 | A | `tools/fetch_server_profile.sh <run_id>` | `runs/<run_id>/profile_server.csv` 생김 |
 | ◐ | 분석 | A | `python tools/analyze_run.py runs/<run_id>` | `summary.md`, `plots/*.png` 생성 (headline 값 기록 `[ ]`) |
 
@@ -85,7 +85,7 @@
 | ☐ | 데이터 복사 | A | `deploy/scripts/sync-dataset-to-inference-host.sh` | B의 `~/carlamayo/carla_data/` |
 | ☐ | B 로컬 실행 | B | `python carlamayo.py --loop open --version 1.5 --data-root carla_data --run-tag local` | `runs/<run_local>/predictions.npz` |
 | ☐ | A 원격 raw | A | 4단계 명령 + `--image-encoding raw_rgb8 --run-tag remote-raw` | `runs/<run_raw>/predictions.npz` |
-| ☐ | 비교 | A | `rsync -avz ubuntu@172.31.20.213:~/carlamayo/runs/<run_local>/ runs/<run_local>/` → `python tools/compare_predictions.py runs/<run_local> runs/<run_raw>` | raw: `bitwise identical: True` 또는 max diff 1e-4 이하 |
+| ☐ | 비교 | A | `rsync -avz ubuntu@<B_IP>:~/carlamayo/runs/<run_local>/ runs/<run_local>/` → `python tools/compare_predictions.py runs/<run_local> runs/<run_raw>` | raw: `bitwise identical: True` 또는 max diff 1e-4 이하 |
 | ☐ | JPEG 영향 | A | `python tools/compare_predictions.py runs/<run_local> runs/<run_remote_jpeg> --atol 1` | `parity.md`의 평균 xy 거리 기록 (보고서의 "JPEG 영향" 근거) |
 
 기록할 것: raw의 max diff, JPEG의 평균 xy 거리(m)와 max diff.
@@ -98,7 +98,7 @@ DCV 세션 안의 터미널에서 실행(SSH면 `export DISPLAY=:0`). 처음엔 
 
 | 상태 | 모드 | 어디 | 명령 | 통과 기준 |
 |---|---|---|---|---|
-| ◐ | normal (동기) | A | `python carlamayo.py --loop closed --version 1.5 --inference-server 172.31.20.213:50051 --run-tag sync` | 창이 뜨고 차량이 주행, 터미널에 `[Frame k] Inference:` 반복, 충돌 시 리스폰. 2026-10-01: 비동기(`--async`)로 먼저 돌렸더니 궤적 나이 때문에 주행이 불안정 → 동기로 재확인 중 |
+| ◐ | normal (동기) | A | `python carlamayo.py --loop closed --version 1.5 --inference-server <B_IP>:50051 --run-tag sync` | 창이 뜨고 차량이 주행, 터미널에 `[Frame k] Inference:` 반복, 충돌 시 리스폰. 2026-10-01: 비동기(`--async`)로 먼저 돌렸더니 궤적 나이 때문에 주행이 불안정 → 동기로 재확인 중 |
 | ☐ | navigation | A | 위 + `--mode navigation --navigation-text "Turn right in 30m" --run-tag nav` | 정지 없이 시작, CoT에 지시 반영, 창에서 Enter로 지시 변경 시 즉시 적용 |
 | ☐ | navigation + CFG | A | 위 + `--navigation-weight 1.5 --run-tag cfg15` | 서버 로그에 요청 처리, 추론 시간이 비CFG보다 김(CFG 경로) |
 | ☐ | vqa | A | 위 + `--mode vqa --vqa-question "What is ahead?" --run-tag vqa` | 차량 정지, 패널·터미널에 답변 |
@@ -113,7 +113,7 @@ DCV 세션 안의 터미널에서 실행(SSH면 `export DISPLAY=:0`). 처음엔 
 
 | 상태 | 항목 | 어디 | 명령 | 통과 기준 |
 |---|---|---|---|---|
-| ☐ | live-open | A | `python carlamayo.py --loop live-open --version 1.5 --async --inference-server 172.31.20.213:50051 --run-tag live` | 오토파일럿 주행, 창에 예측 궤적 오버레이, 영상 2개 생성 |
+| ☐ | live-open | A | `python carlamayo.py --loop live-open --version 1.5 --async --inference-server <B_IP>:50051 --run-tag live` | 오토파일럿 주행, 창에 예측 궤적 오버레이, 영상 2개 생성 |
 
 ---
 

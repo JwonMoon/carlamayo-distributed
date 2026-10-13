@@ -1,4 +1,7 @@
-# 분리 구현 로드맵
+# 분리 구현 로드맵 (완료된 구현 순서 기록)
+
+> 2026-10 기준 1~9단계는 끝났고 10단계(실제 인스턴스 검증)는 [validation-checklist.md](validation-checklist.md)로 넘어갔다.
+> 이 문서는 어떤 순서로 무엇을 만들었는지의 기록이며, 할 일 목록으로는 더 쓰지 않는다.
 
 [distributed-architecture.md](distributed-architecture.md)의 설계를 코드로 옮기는 순서다.
 각 단계는 **CI(`python -m pytest -q tests`)가 계속 통과하도록** 배치했고, 앞 단계가 뒤 단계의
@@ -115,9 +118,9 @@
 | 파일 | 내용 |
 |---|---|
 | `requirements-sim.txt` | numpy, opencv-python, pygame, scipy, pillow, carla==0.9.16, grpcio, protobuf, psutil, pynvml, matplotlib, pandas |
-| `requirements-carla.txt` | 호환용: `-r requirements-sim.txt` 한 줄 |
+| `requirements-carla.txt` | 호환용 `-r requirements-sim.txt` 한 줄. 2026-10-13 삭제 |
 | `requirements-inference.txt` | 기존 `requirements-alpamayo.txt` 내용 + grpcio, grpcio-health-checking, protobuf, psutil, pynvml |
-| `requirements-alpamayo.txt` | 호환용: `-r requirements-inference.txt` |
+| `requirements-alpamayo.txt` | 호환용 `-r requirements-inference.txt`. 2026-10-13 삭제 |
 | `pyproject.toml` | dependencies에 grpcio, protobuf; dev에 grpcio-tools. `uv.lock`은 B에서 재생성(flash-attn 때문에 CI 불가) |
 | `.github/workflows/ci.yml` | grpcio, grpcio-tools, protobuf 설치. 스텁 재생성 후 `git diff --exit-code module/remote/*_pb2*.py` |
 | `docs/environment-setup.md` | §3 "Combined" 환경을 두 호스트 절차로 교체 |

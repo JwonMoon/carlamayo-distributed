@@ -7,8 +7,9 @@
 새 인스턴스에 처음부터 구성하는 절차는 [porting-guide.md](porting-guide.md), 단계별 검증 기록은
 [validation-checklist.md](validation-checklist.md)에 있다.
 
-- **[A]** = 시뮬레이터 호스트 `172.31.38.219` (g5.2xlarge). CARLA, `carlamayo.py`, pygame 창(DCV). 명령은 DCV 세션 안의 터미널에서.
-- **[B]** = 추론 호스트 `172.31.20.213` (g6e.xlarge). `alpamayo_server.py` 하나만 띄워 둔다.
+- **[A]** = 시뮬레이터 호스트 `<A_IP>` (g5.2xlarge). CARLA, `carlamayo.py`, pygame 창(DCV). 명령은 DCV 세션 안의 터미널에서.
+- **[B]** = 추론 호스트 `<B_IP>` (g6e.xlarge). `alpamayo_server.py` 하나만 띄워 둔다.
+- `<A_IP>`/`<B_IP>`는 두 인스턴스의 **사설 IP**다. `deploy/hosts.env`에 적은 값과 같다. 명령을 칠 때 자기 값으로 바꾼다.
 - 두 인스턴스 모두 저장소를 `~/carlamayo`에 클론해 그 안에서 명령을 친다. SSH 사용자명은 AMI에 따라 `ubuntu` 또는 `ec2-user`이므로 예시의 `ubuntu`를 맞게 바꾼다.
 - 순서: 0 점검 → 1 B 서버 → 2 A CARLA → 3 open-loop → 4 closed-loop 동기 → 4b 비동기 → 5 navigation+CFG → 6 VQA → 7 (선택) 후보 궤적 → 8 측정 정리 → 9 종료.
 - 원칙: **B는 데모 내내 손대지 않는다.** 모드 전환(open/closed, navigation, CFG, VQA)은 전부 A의 플래그와 창 입력으로 한다.
@@ -30,7 +31,7 @@
 | [A] | `source venv-sim/bin/activate && export CARLA_ROOT=~/carla` | 이후 모든 A 명령의 전제 |
 | [B] | `source a_venv/bin/activate && hf auth whoami` | 계정 이름이 나온다 |
 | [B] | `ss -ltnp \| grep 50051` | 아직 서버가 없으면 빈 출력(정상). 1단계에서 띄운다 |
-| [A] | `nc -zv 172.31.20.213 22` | `succeeded!` (보안그룹·SSH) |
+| [A] | `nc -zv <B_IP> 22` | `succeeded!` (보안그룹·SSH) |
 | 로컬 PC | DCV 클라이언트로 A 접속 | 바탕화면이 보인다 |
 
 > 팁: `nc`와 왕복 스니펫은 **A에서** 친다. B에서 치면 자기 자신을 보는 것이라 의미가 없다.
@@ -43,7 +44,7 @@
 # [B]
 tmux new -s server
 cd ~/carlamayo && source a_venv/bin/activate
-python alpamayo_server.py --version 1.5 --host 172.31.20.213 --port 50051
+python alpamayo_server.py --version 1.5 --host <B_IP> --port 50051
 ```
 
 기대 로그(순서대로):
@@ -58,11 +59,11 @@ SERVING Alpamayo 1.5 version=1.5 warmed_up=True cameras=4 NUM_FRAMES=4 IMG=1920x
 | 확인 | 명령 | 기대 |
 |---|---|---|
 | VRAM | [B] `nvidia-smi` | 약 21~24 GB 사용 |
-| 포트 | [A] `nc -zv 172.31.20.213 50051` | `succeeded!` |
+| 포트 | [A] `nc -zv <B_IP> 50051` | `succeeded!` |
 
 기록: 모델 로드 `[ ]` s, 워밍업 `[ ]` s, VRAM `[ ]` GB (첫 실행은 22 GB 다운로드 때문에 수십 분).
 
-> 팁: 서버가 안 떠 있으면 A의 클라이언트는 30초 뒤 `no inference server at 172.31.20.213:50051 after 30s`로 끝난다.
+> 팁: 서버가 안 떠 있으면 A의 클라이언트는 30초 뒤 `no inference server at <B_IP>:50051 after 30s`로 끝난다.
 > 이 메시지를 보면 B의 `ss -ltnp | grep 50051`부터 확인한다. (2026-10-01에 실제로 겪음)
 
 ---
@@ -88,13 +89,13 @@ nvidia-smi          # CarlaUE4 약 6 GB
 ```bash
 # [A]
 python carlamayo.py --loop open --version 1.5 --data-root carla_data \
-  --inference-server 172.31.20.213:50051 --run-tag remote-jpeg
+  --inference-server <B_IP>:50051 --run-tag remote-jpeg
 ```
 
 기대 터미널:
 ```
 Run folder: runs/20261001-HHMMSS_open_v1.5_remote-jpeg     ← run_id (첫 줄 근처)
-Inference: remote server at 172.31.20.213:50051
+Inference: remote server at <B_IP>:50051
 Total recorded frames: N
 [Frame k] Inference: 2.xx s   ... 프레임마다 반복
 ```
@@ -122,7 +123,7 @@ sed -n 1,30p runs/$RUN/summary.md
 
 ```bash
 # [A]  (DCV 세션 안의 터미널. SSH 터미널이면 먼저 export DISPLAY=:0)
-python carlamayo.py --loop closed --version 1.5 --inference-server 172.31.20.213:50051 --run-tag sync
+python carlamayo.py --loop closed --version 1.5 --inference-server <B_IP>:50051 --run-tag sync
 ```
 
 창(960×675)에서 볼 것:
@@ -153,7 +154,7 @@ python carlamayo.py --loop closed --version 1.5 --inference-server 172.31.20.213
 
 ```bash
 # [A]
-python carlamayo.py --loop closed --version 1.5 --async --inference-server 172.31.20.213:50051 --run-tag async
+python carlamayo.py --loop closed --version 1.5 --async --inference-server <B_IP>:50051 --run-tag async
 ```
 
 볼 것:
@@ -180,7 +181,7 @@ python carlamayo.py --loop closed --version 1.5 --async --inference-server 172.3
 
 ```bash
 # [A]
-python carlamayo.py --loop closed --version 1.5 --inference-server 172.31.20.213:50051 \
+python carlamayo.py --loop closed --version 1.5 --inference-server <B_IP>:50051 \
   --mode navigation --navigation-text "Turn right in 30m" --navigation-weight 1.5 --run-tag nav-cfg15
 ```
 
@@ -205,7 +206,7 @@ python carlamayo.py --loop closed --version 1.5 --inference-server 172.31.20.213
 
 ```bash
 # [A]
-python carlamayo.py --loop closed --version 1.5 --inference-server 172.31.20.213:50051 \
+python carlamayo.py --loop closed --version 1.5 --inference-server <B_IP>:50051 \
   --mode vqa --vqa-question "What is ahead?" --run-tag vqa
 ```
 
@@ -224,9 +225,9 @@ python carlamayo.py --loop closed --version 1.5 --inference-server 172.31.20.213
 
 ```bash
 # [B]  tmux attach -t server → Ctrl+C
-python alpamayo_server.py --version 1.5 --host 172.31.20.213 --port 50051 --num-traj-samples 4
+python alpamayo_server.py --version 1.5 --host <B_IP> --port 50051 --num-traj-samples 4
 # [A]
-python carlamayo.py --loop closed --version 1.5 --inference-server 172.31.20.213:50051 --run-tag samples4
+python carlamayo.py --loop closed --version 1.5 --inference-server <B_IP>:50051 --run-tag samples4
 ```
 흰 선 4개(후보) + 빨간 선 1개(선택). A 쪽 옵션은 없다(핸드셰이크로 서버 값을 받음). VRAM 약 30 GB, 추론 시간 증가.
 **끝나면 B를 `--num-traj-samples` 없이 다시 띄워 기본 상태로 돌린다.** 데모 순서상 맨 마지막에 한다.
@@ -266,10 +267,10 @@ scp -r ubuntu@<B>:~/carlamayo/runs/<run_id> ./results/     # B 로컬 open-loop 
 
 | 증상 | 원인 | 조치 |
 |---|---|---|
-| `no inference server at 172.31.20.213:50051 after 30s` (`grpc.FutureTimeoutError`) | B에서 서버가 안 떠 있음, 또는 보안그룹이 50051을 막음 | [B] `ss -ltnp \| grep 50051`로 서버 확인 → 없으면 1단계. 있으면 [A] `nc -zv 172.31.20.213 50051` |
+| `no inference server at <B_IP>:50051 after 30s` (`grpc.FutureTimeoutError`) | B에서 서버가 안 떠 있음, 또는 보안그룹이 50051을 막음 | [B] `ss -ltnp \| grep 50051`로 서버 확인 → 없으면 1단계. 있으면 [A] `nc -zv <B_IP> 50051` |
 | `nc`가 멈춤(timed out) | 보안그룹 | B 인바운드에 A의 보안그룹(또는 `172.31.0.0/16`) TCP 22·50051 허용 ([porting-guide.md](porting-guide.md) §1.2) |
-| `nc` 즉시 `refused` | 포트는 열렸는데 서버 없음 / `--host` IP 오타 | [B]에서 서버 기동, `--host 172.31.20.213` 확인 |
-| `nc`는 되는데 gRPC만 실패 | A의 `https_proxy` 환경변수로 gRPC가 프록시로 나감 | `export no_grpc_proxy=172.31.20.213` 또는 `unset https_proxy http_proxy` |
+| `nc` 즉시 `refused` | 포트는 열렸는데 서버 없음 / `--host` IP 오타 | [B]에서 서버 기동, `--host <B_IP>` 확인 |
+| `nc`는 되는데 gRPC만 실패 | A의 `https_proxy` 환경변수로 gRPC가 프록시로 나감 | `export no_grpc_proxy=<B_IP>` 또는 `unset https_proxy http_proxy` |
 | `server is not warmed up` | 서버가 아직 모델 로드·워밍업 중 | B 로그에 `SERVING`이 뜰 때까지 대기 |
 | `serves Alpamayo '2' but --version '1.5'` | A와 B의 `--version` 불일치 | 둘을 맞춘다 |
 | `NUM_FRAMES: client 4 != server …` | 두 호스트의 커밋이 달라 `module/config.py`가 다름 | 양쪽 `git pull` |
@@ -287,8 +288,8 @@ scp -r ubuntu@<B>:~/carlamayo/runs/<run_id> ./results/     # B 로컬 open-loop 
 
 | 목적 | 어디 | 명령 |
 |---|---|---|
-| 서버 포트 열림 | [A] | `nc -zv 172.31.20.213 50051` |
-| 서버 health | [A] | `python -c "import grpc; from grpc_health.v1 import health_pb2, health_pb2_grpc; print(health_pb2_grpc.HealthStub(grpc.insecure_channel('172.31.20.213:50051')).Check(health_pb2.HealthCheckRequest()))"` (`pip install grpcio-health-checking` 필요) |
+| 서버 포트 열림 | [A] | `nc -zv <B_IP> 50051` |
+| 서버 health | [A] | `python -c "import grpc; from grpc_health.v1 import health_pb2, health_pb2_grpc; print(health_pb2_grpc.HealthStub(grpc.insecure_channel('<B_IP>:50051')).Check(health_pb2.HealthCheckRequest()))"` (`pip install grpcio-health-checking` 필요) |
 | 서버 로그 | [B] | `tmux attach -t server` (직접 실행) 또는 `journalctl -u alpamayo-server -f` (systemd) |
 | GPU | [A]/[B] | `nvidia-smi` |
 | CARLA 응답 | [A] | `python -c "import carla; c=carla.Client('localhost',2000); c.set_timeout(5); print(c.get_server_version())"` |
@@ -306,12 +307,12 @@ scp -r ubuntu@<B>:~/carlamayo/runs/<run_id> ./results/     # B 로컬 open-loop 
 
 | 기호 | 인스턴스 | 내부 IP | 여기서 실행하는 것 |
 |---|---|---|---|
-| **[A]** | g5.2xlarge | `172.31.38.219` | CARLA 서버, **`carlamayo.py`(open/closed/live-open 전부)**, `data_collect.py`, pygame UI(DCV), 프로파일 분석 |
-| **[B]** | g6e.xlarge | `172.31.20.213` | **`alpamayo_server.py`**(모델을 한 번 로드해 gRPC로 상주), 공식 노트북 |
+| **[A]** | g5.2xlarge | `<A_IP>` | CARLA 서버, **`carlamayo.py`(open/closed/live-open 전부)**, `data_collect.py`, pygame UI(DCV), 프로파일 분석 |
+| **[B]** | g6e.xlarge | `<B_IP>` | **`alpamayo_server.py`**(모델을 한 번 로드해 gRPC로 상주), 공식 노트북 |
 
 `carlamayo.py`는 CARLA와 **같은 인스턴스(A)** 에서 돈다. 이 프로그램이 CARLA로부터 매 tick
 카메라 4장(초당 300 MB 이상)을 받고 NPC 교통을 관리하기 때문에 CARLA 옆에 있어야 한다.
-모델만 B에 두고, `carlamayo.py`는 `--inference-server 172.31.20.213:50051` 옵션으로 1초에 한 번
+모델만 B에 두고, `carlamayo.py`는 `--inference-server <B_IP>:50051` 옵션으로 1초에 한 번
 압축 이미지(5~8 MB)를 B에 보내 궤적을 받아 온다. "A는 CARLA만, B에서 `carlamayo.py`" 구성은
 업스트림의 `--carla-host` 플래그로 가능하지만 위 트래픽이 네트워크를 건너야 해서 택하지
 않았다([ADR 0001](adr/0001-topology-client-on-sim-host.md)).
@@ -344,10 +345,10 @@ B에서 바꿀 일이 있는 것은 모델 로딩 옵션(`--version`, `--quantiz
 
 | 방법 | 명령 | 비고 |
 |---|---|---|
-| 직접 실행 (1부 1단계) | `tmux new -s server` → `python alpamayo_server.py --version 1.5 --host 172.31.20.213 --port 50051` | SSH가 끊겨도 tmux 안에서 유지 |
+| 직접 실행 (1부 1단계) | `tmux new -s server` → `python alpamayo_server.py --version 1.5 --host <B_IP> --port 50051` | SSH가 끊겨도 tmux 안에서 유지 |
 | systemd 서비스 | `sudo systemctl start alpamayo-server && journalctl -u alpamayo-server -f` | 터미널을 닫아도 유지, 재부팅·크래시 시 자동 재시작. 등록은 [deploy/aws/README.md](../../deploy/aws/README.md) |
 | 궤적 후보 4개 | 위 명령 + `--num-traj-samples 4` | A 쪽 옵션 없음(핸드셰이크로 서버 값을 받음) |
-| 모델 없이 네트워크만 | `python alpamayo_server.py --fake --host 172.31.20.213 --port 50051` | GPU·가중치 불필요. A에서 `nc -zv 172.31.20.213 50051`, 왕복은 `deploy/scripts/verify-sim-host.sh --link` |
+| 모델 없이 네트워크만 | `python alpamayo_server.py --fake --host <B_IP> --port 50051` | GPU·가중치 불필요. A에서 `nc -zv <B_IP> 50051`, 왕복은 `deploy/scripts/verify-sim-host.sh --link` |
 
 직접 실행과 systemd는 **둘 중 하나**만 한다.
 
@@ -371,7 +372,7 @@ deploy/scripts/sync-dataset-to-inference-host.sh   # (R4 경로 1용) rsync → 
 | 경로 | 어디 | 명령 |
 |---|---|---|
 | 경로 1: B 로컬(업스트림과 같음) | [B] | `cd ~/carlamayo && source a_venv/bin/activate && python carlamayo.py --loop open --version 1.5 --data-root carla_data` |
-| 경로 2: A 원격(1부 3단계) | [A] | `python carlamayo.py --loop open --version 1.5 --data-root carla_data --inference-server 172.31.20.213:50051` |
+| 경로 2: A 원격(1부 3단계) | [A] | `python carlamayo.py --loop open --version 1.5 --data-root carla_data --inference-server <B_IP>:50051` |
 | 경로 2, 무압축 | [A] | 위 명령에 `--image-encoding raw_rgb8` |
 
 출력: 실행한 인스턴스의 `~/carlamayo/runs/<run_id>/carla_alpamayo_open_loop_result.mp4`, `predictions.npz`.
@@ -382,7 +383,7 @@ parity 검사(경로 1과 경로 2가 같은 궤적을 내는지):
 ```bash
 # [B] 경로 1 실행 → runs/<run_local>  ;  [A] 경로 2 실행(raw) → runs/<run_remote>
 # [A] B의 예측을 가져와 비교
-rsync -avz ubuntu@172.31.20.213:~/carlamayo/runs/<run_local>/ runs/<run_local>/
+rsync -avz ubuntu@<B_IP>:~/carlamayo/runs/<run_local>/ runs/<run_local>/
 python tools/compare_predictions.py runs/<run_local> runs/<run_remote>          # raw: 거의 0 기대
 python tools/compare_predictions.py runs/<run_local> runs/<run_remote_jpeg> --atol 1   # JPEG: 차이 측정
 ```
@@ -400,7 +401,7 @@ cd ~/carlamayo && source venv-sim/bin/activate && export CARLA_ROOT=~/carla
 
 | 모드 | 명령 |
 |---|---|
-| normal, 동기 (기본) | `python carlamayo.py --loop closed --version 1.5 --inference-server 172.31.20.213:50051` |
+| normal, 동기 (기본) | `python carlamayo.py --loop closed --version 1.5 --inference-server <B_IP>:50051` |
 | normal, 비동기 | 위 + `--async` (화면은 안 멈추지만 궤적이 왕복 시간만큼 오래됨. 1부 4b) |
 | 창 없이 | 위 + `--no-pygame-ui` |
 | 창 크기 바꾸기 | 위 + `--pygame-size 1280x900` (기본 960x675, 패널·글꼴은 폭에 비례) |
@@ -412,7 +413,7 @@ cd ~/carlamayo && source venv-sim/bin/activate && export CARLA_ROOT=~/carla
 | 결과 폴더 꼬리표 | 위 + `--run-tag cfg15` |
 | 오래된 궤적 정지 기준 바꾸기 | 위 + `--trajectory-max-age-sec 8` (기본 6, 0이면 끔) |
 | 요청 타임아웃 | 위 + `--rpc-timeout-sec 60` (기본 120) |
-| live-open (오토파일럿이 운전, 모델은 관찰만) | `python carlamayo.py --loop live-open --version 1.5 --async --inference-server 172.31.20.213:50051` |
+| live-open (오토파일럿이 운전, 모델은 관찰만) | `python carlamayo.py --loop live-open --version 1.5 --async --inference-server <B_IP>:50051` |
 
 UI 조작: `Enter` 프롬프트 적용, `Ctrl+P` 일시정지/재개(시뮬 세계 전체 정지), `Esc` 종료.
 동기/비동기 선택, navigation 지시 지속·해제, 영상 저장 조건 같은 팁은 1부 4·4b·5단계에 있다.

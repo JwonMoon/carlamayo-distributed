@@ -31,14 +31,14 @@
 | [docs/distributed/architecture-analysis.md](docs/distributed/architecture-analysis.md) | 현재(단일 호스트) 구조 분석: 배포·모듈 의존·시퀀스·데이터 크기·타이밍·UI |
 | [docs/distributed/distributed-architecture.md](docs/distributed/distributed-architecture.md) | 분리 후 구조, 인스턴스 간 데이터 교환 명세, 전/후 비교, RPC 계약 초안, 리스크 |
 | [docs/distributed/adr/](docs/distributed/adr/README.md) | 설계 결정 기록: 왜 이렇게 골랐고 다른 후보는 왜 아닌지 |
-| [docs/distributed/distributed-roadmap.md](docs/distributed/distributed-roadmap.md) | 분리 구현 단계별 작업 목록 |
+| [docs/distributed/distributed-roadmap.md](docs/distributed/distributed-roadmap.md) | 분리 구현을 어떤 순서로 했는지의 기록(완료) |
 | [docs/distributed/demo-runbook.md](docs/distributed/demo-runbook.md) | 1부: 데모 당일 위에서 아래로 따라 치는 순서서(명령·기대 출력·확인 팁·자주 겪은 오류). 2부: 인스턴스별 명령·옵션 참조(open-loop 경로, parity, live-open, 서버 옵션, 데이터 수집, 공식 노트북) |
 | [docs/distributed/validation-checklist.md](docs/distributed/validation-checklist.md) | 실제 두 인스턴스에서 단계별로 검증하는 체크리스트(진행 상태·기록 포함) |
 | [docs/distributed/changes-from-upstream.md](docs/distributed/changes-from-upstream.md) | 업스트림 대비 무엇을 어디에 왜 바꿨는지 |
 | [docs/distributed/alpamayo15-notebooks-guide.md](docs/distributed/alpamayo15-notebooks-guide.md) | 공식 Alpamayo 1.5 노트북 안내와 g6e.xlarge 실행 가능성 |
 | [docs/distributed/diagrams/](docs/distributed/diagrams/) | 위 문서의 다이어그램 SVG |
 | `docs/distributed/demo-overview*.pptx` (git 제외) | 라이브 데모용 오버뷰 장표 (17장 전체 버전 / 8장 요약 버전). `.gitignore`에서 `*.ppt`, `*.pptx`를 무시하므로 저장소에 없음. 필요하면 별도로 전달받아 같은 경로에 둔다 |
-| [deploy/aws/README.md](deploy/aws/README.md) | AWS 인스턴스·보안그룹·systemd·설치 스크립트 |
+| [deploy/aws/README.md](deploy/aws/README.md) | 포팅 가이드 보조: 보안그룹 권한 요청 문구, systemd 서비스 등록, 비용 |
 
 분리 실행의 핵심 진입점:
 
@@ -148,7 +148,7 @@ The closed-loop runner supports `normal`, `navigation`, and `vqa` modes through
 ├── third_party/oom-free-alpamayo/ # OOM-free demand-layering submodule (1.5 --oom-free).
 ├── .github/workflows/ci.yml     # Lightweight GitHub Actions test workflow.
 ├── pyproject.toml               # Python project metadata and Ruff configuration.
-└── requirements-*.txt           # Alpamayo runtime and CARLA 0.9.16 packages.
+└── requirements-{sim,inference}.txt  # Sim host (CARLA client, no torch) / inference host (server) packages.
 ```
 
 Generated data and videos such as `carla_data/` and `carla_alpamayo_*.mp4` are ignored by git.

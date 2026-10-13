@@ -145,7 +145,7 @@ scp -i <pem> -r <user>@<A 공인 IP>:~/carlamayo/runs/<run_id> ./results/
 - **navigation 지시는 지울 때까지 매 추론에 들어간다.** 회전을 마치면 해제하지 않으면 계속 회전하려 한다.
 - **VQA는 정지 상태**에서만 답한다(업스트림과 같음).
 - 영상 프레임을 메모리에 모았다가 종료 때 쓴다. 1080p 10분 ≈ 6 GB. **2~3분 단위로 끊어 돌린다.**
-- 저장소의 runbook·checklist 명령에 적힌 `172.31.38.219`/`172.31.20.213`은 **이전 인스턴스 IP**다. 이 페이지의 `<A_IP>`/`<B_IP>`로 바꿔 친다. 스크립트(`deploy/scripts/*`, `tools/fetch_server_profile.sh`)는 `deploy/hosts.env`를 읽으므로 그대로 된다.
+- 저장소의 runbook·checklist 명령에 적힌 `<A_IP>`/`<B_IP>`는 이 페이지 §1 표의 사설 IP다. 스크립트(`deploy/scripts/*`, `tools/fetch_server_profile.sh`)는 `deploy/hosts.env`를 읽으므로 그대로 된다.
 - HF 토큰은 B에만 둔다. gRPC는 VPC 안 평문이며 50051은 외부에 열지 않는다.
 
 ---

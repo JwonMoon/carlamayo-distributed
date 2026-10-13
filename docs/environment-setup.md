@@ -53,12 +53,12 @@ If your CARLA archive extracts into a nested package directory, move or symlink 
 
 ### 1.2 Create a CARLA Python environment
 
-From the repository root, install `requirements-carla.txt`; it pins `carla==0.9.16` to match the CARLA server.
+From the repository root, install `requirements-sim.txt`; it pins `carla==0.9.16` to match the CARLA server.
 
 ```bash
 python3.10 -m venv venv-carla
 source venv-carla/bin/activate
-pip install -r requirements-carla.txt
+pip install -r requirements-sim.txt
 ```
 
 
@@ -97,7 +97,7 @@ uv pip install --no-deps -e third_party/alpamayo1      # --version 1 (R1)
 uv pip install --no-deps -e third_party/alpamayo1.5    # --version 1.5
 uv pip install --no-deps -e third_party/alpamayo2      # --version 2
 uv pip install --no-deps -e third_party/oom-free-alpamayo  # optional: --oom-free (1.5)
-uv pip install -r requirements-alpamayo.txt
+uv pip install -r requirements-inference.txt
 ```
 
 ### 2.3 Authenticate with Hugging Face

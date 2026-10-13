@@ -27,9 +27,9 @@ GitHub에서 문서를 열면 같은 그림이 바로 보인다. SVG는 Mermaid�
 | `split-run-id-profiling.svg` | §9.2 | A가 실행 폴더 이름(run_id)을 만들어 모든 RPC 메타에 실어 보내고, B가 같은 이름의 폴더를 만들어 프로파일을 기록한 뒤, 종료 후 rsync로 한 폴더에 합쳐 분석하는 흐름 | `alt` 상자 = B가 처음 보는 run_id일 때만 폴더 생성. 마지막 두 줄이 종료 후 수동 단계 |
 | `split-open-loop-two-paths.svg` | §4.3 | open-loop를 돌리는 두 경로. 경로 1 = 데이터를 B로 복사해 기존 코드 그대로 실행(기본). 경로 2 = A에서 원격 서버로 프레임을 보내며 실행(RPC 검증용) | 두 서브그래프가 각각 한 경로. 경로 2의 결과를 경로 1과 비교하는 것이 parity 테스트 |
 
-## 백업
+## 이전 버전
 
-`backup/`에는 2026-10-01 이전 버전(`*-v1.svg`와 Mermaid 소스 `*-v1.mmd`)이 있다. 이전 `split-deployment-v1`은 운영자 PC·DCV·HF 캐시·rsync 경로까지 넣은 호스트·운영 수준 그림이었고, 전/후 비교를 위해 컴포넌트 수준으로 다시 그렸다.
+2026-10-01 이전의 배포 다이어그램(`current-deployment-v1`, `split-deployment-v1`과 Mermaid 소스)은 운영자 PC·DCV·HF 캐시·rsync 경로까지 넣은 호스트·운영 수준 그림이었고, 전/후 비교를 위해 컴포넌트 수준으로 다시 그렸다. 그 파일들은 2026-10-13에 지웠고 git 이력(`git log -- docs/distributed/diagrams/backup`)에 남아 있다.
 
 ## 다시 만들기
 
