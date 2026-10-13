@@ -53,11 +53,11 @@ CARLA 포트(2000~2002, 8000)는 어디에도 열지 않는다. 서버는 `--hos
 
 ```bash
 # [A]
-git clone https://github.com/jwonmoon/carlamayo-my-distributed.git ~/carlamayo
+git clone https://github.com/jwonmoon/carlamayo-distributed.git ~/carlamayo
 ~/carlamayo/deploy/scripts/setup-sim-host.sh
 
 # [B]
-git clone https://github.com/jwonmoon/carlamayo-my-distributed.git ~/carlamayo
+git clone https://github.com/jwonmoon/carlamayo-distributed.git ~/carlamayo
 ~/carlamayo/deploy/scripts/setup-inference-host.sh
 hf auth login
 ```

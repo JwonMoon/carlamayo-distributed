@@ -99,7 +99,7 @@ DCV 클라이언트로 `https://<A 공인 IP>:8443` 접속. DCV 없이도 open-l
 두 인스턴스 모두에서:
 
 ```bash
-git clone https://github.com/jwonmoon/carlamayo-my-distributed.git ~/carlamayo
+git clone https://github.com/jwonmoon/carlamayo-distributed.git ~/carlamayo
 cd ~/carlamayo
 git checkout main                              # 기본 브랜치(main). 개발 브랜치는 claude/nice-planck-dec7fo
 git log -1 --oneline                           # 두 인스턴스가 같은 커밋인지 메모

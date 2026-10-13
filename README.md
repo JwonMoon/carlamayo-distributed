@@ -17,7 +17,7 @@
 > Each card covers architecture, inputs/outputs, licensing, and tested hardware. This
 > repository focuses on CARLA setup, data collection, and open/closed/live-open inference.
 
-## 이 포크에 대하여 (carlamayo-my-distributed)
+## 이 포크에 대하여 (carlamayo-distributed)
 
 이 저장소는 [aveeslab/Carlamayo](https://github.com/aveeslab/Carlamayo)를 히스토리째 가져와
 **CARLA 인스턴스와 Alpamayo 인스턴스를 분리해 실행**하도록 개조하는 작업 공간이다.

@@ -28,7 +28,7 @@
 | 항목 | 값 |
 |---|---|
 | 담당자 / 문의 | `<이름, 연락처>` |
-| 저장소 | https://github.com/JwonMoon/carlamayo-my-distributed (브랜치 `main`, 두 인스턴스 모두 `~/carlamayo`에 클론됨) |
+| 저장소 | https://github.com/JwonMoon/carlamayo-distributed (브랜치 `main`, 두 인스턴스 모두 `~/carlamayo`에 클론됨) |
 | 인계일 / 검증 상태 | `<날짜>` / validation-checklist `<N>`단계까지 ☑ |
 
 ---
@@ -153,10 +153,10 @@ scp -i <pem> -r <user>@<A 공인 IP>:~/carlamayo/runs/<run_id> ./results/
 
 | 문서 | 언제 보나 |
 |---|---|
-| [README](https://github.com/JwonMoon/carlamayo-my-distributed/blob/main/README.md) | 문서 색인 |
-| [porting-guide](https://github.com/JwonMoon/carlamayo-my-distributed/blob/main/docs/distributed/porting-guide.md) | 인스턴스를 처음부터 다시 구성할 때 |
-| [demo-runbook](https://github.com/JwonMoon/carlamayo-my-distributed/blob/main/docs/distributed/demo-runbook.md) | 1부: 데모 전체 순서와 기대 출력. 2부: 모든 옵션(open-loop 경로, parity, live-open, 서버 옵션, 공식 노트북) |
-| [validation-checklist](https://github.com/JwonMoon/carlamayo-my-distributed/blob/main/docs/distributed/validation-checklist.md) | 단계별 검증 기록 |
-| [distributed-architecture](https://github.com/JwonMoon/carlamayo-my-distributed/blob/main/docs/distributed/distributed-architecture.md) | 구조와 데이터 교환이 궁금할 때 |
-| [changes-from-upstream](https://github.com/JwonMoon/carlamayo-my-distributed/blob/main/docs/distributed/changes-from-upstream.md) | 원본 대비 무엇을 어디에 왜 바꿨는지 |
+| [README](https://github.com/JwonMoon/carlamayo-distributed/blob/main/README.md) | 문서 색인 |
+| [porting-guide](https://github.com/JwonMoon/carlamayo-distributed/blob/main/docs/distributed/porting-guide.md) | 인스턴스를 처음부터 다시 구성할 때 |
+| [demo-runbook](https://github.com/JwonMoon/carlamayo-distributed/blob/main/docs/distributed/demo-runbook.md) | 1부: 데모 전체 순서와 기대 출력. 2부: 모든 옵션(open-loop 경로, parity, live-open, 서버 옵션, 공식 노트북) |
+| [validation-checklist](https://github.com/JwonMoon/carlamayo-distributed/blob/main/docs/distributed/validation-checklist.md) | 단계별 검증 기록 |
+| [distributed-architecture](https://github.com/JwonMoon/carlamayo-distributed/blob/main/docs/distributed/distributed-architecture.md) | 구조와 데이터 교환이 궁금할 때 |
+| [changes-from-upstream](https://github.com/JwonMoon/carlamayo-distributed/blob/main/docs/distributed/changes-from-upstream.md) | 원본 대비 무엇을 어디에 왜 바꿨는지 |
 | [aveeslab/Carlamayo](https://github.com/aveeslab/Carlamayo) | 원본 오픈소스. 원래 사용법·이슈·업데이트는 여기 |
