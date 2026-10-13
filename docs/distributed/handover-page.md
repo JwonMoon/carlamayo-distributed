@@ -3,16 +3,27 @@
 > 콜랩 페이지에 붙여 넣는 원본이다. `<...>` 칸을 실제 값으로 채운다. 명령과 옵션의 상세는
 > 저장소 문서(§9)에 있고 이 페이지는 **받은 사람이 처음 30분과 매번 돌릴 때 필요한 것만** 담는다.
 
-**무엇인가.** CARLA 시뮬레이터(A)와 Alpamayo 1.5 추론 서버(B)를 서로 다른 EC2 인스턴스에서 돌리고 gRPC로 잇는
-closed-loop 자율주행 데모. A의 `carlamayo.py`가 카메라 4장을 1초에 한 번 B로 보내고, B가 돌려준 궤적으로 A의 차가 달린다.
+## 0. 개요
 
-**출처.** 원본은 오픈소스 [aveeslab/Carlamayo](https://github.com/aveeslab/Carlamayo)다. NVIDIA Alpamayo(1 / 1.5 / 2)를 CARLA에 붙여
-open-loop(녹화 재생), closed-loop(모델이 운전), live-open-loop(오토파일럿 주행 위에 예측만 그림)으로 돌리는 프로젝트이며,
-원래는 **한 GPU 머신**에서 CARLA와 모델을 함께 돌린다. 이 저장소는 그 원본을 히스토리째 포크해 **모델 추론만 다른 인스턴스(B)로 분리**한 것이다.
-원본에 더한 것은 gRPC 추론 서버(`alpamayo_server.py`)와 원격 어댑터, `carlamayo.py`의 `--inference-server` 플래그,
-실행별 결과 폴더(`runs/<run_id>/`)와 프로파일링·분석 도구(`tools/`), 두 호스트 설치·검증 스크립트(`deploy/`), 한국어 운영 문서(`docs/distributed/`)다.
-데이터 수집, 세 가지 loop 모드, navigation·CFG·VQA, pygame 창 같은 사용법은 원본 그대로이며 README 상단 영문 부분이 그 설명이다.
-무엇을 어디에 왜 바꿨는지는 `docs/distributed/changes-from-upstream.md`에 있고, 원본의 새 변경을 가져오는 방법(`git remote add upstream ...`)은 README 끝에 있다.
+### 0.1 무엇인가
+
+- CARLA 시뮬레이터(A)와 Alpamayo 1.5 추론 서버(B)를 **서로 다른 EC2 인스턴스**에서 돌리고 gRPC로 연결한 자율주행 데모.
+- A의 `carlamayo.py`가 카메라 4장을 1초에 한 번 B로 보낸다.
+- B가 돌려준 궤적으로 A의 차가 달린다(closed-loop).
+
+### 0.2 출처: 오픈소스 Carlamayo를 개조한 것
+
+| 구분 | 내용 |
+|---|---|
+| 원본 | [aveeslab/Carlamayo](https://github.com/aveeslab/Carlamayo). NVIDIA Alpamayo(1 / 1.5 / 2)를 CARLA에 붙여 open-loop(녹화 재생), closed-loop(모델이 운전), live-open-loop(오토파일럿 주행 위에 예측만 표시)으로 돌리는 프로젝트. **한 GPU 머신**에서 CARLA와 모델을 함께 돌린다 |
+| 이 저장소 | 원본을 히스토리째 포크해 **모델 추론만 다른 인스턴스(B)로 분리**했다 |
+| 원본 그대로인 것 | 데이터 수집, 세 가지 loop 모드, navigation·CFG·VQA, pygame 창. 설명은 README 상단 영문 부분 |
+| 원본에 더한 것 | - gRPC 추론 서버 `alpamayo_server.py`와 원격 어댑터<br>- `carlamayo.py`의 `--inference-server` 플래그<br>- 실행별 결과 폴더 `runs/<run_id>/`, 프로파일링·분석 도구 `tools/`<br>- 두 호스트 설치·검증 스크립트 `deploy/`<br>- 한국어 운영 문서 `docs/distributed/` |
+
+- 무엇을 어디에 왜 바꿨는지: `docs/distributed/changes-from-upstream.md`
+- 원본의 새 변경을 가져오는 방법(`git remote add upstream ...`): README 끝
+
+### 0.3 담당·저장소
 
 | 항목 | 값 |
 |---|---|
