@@ -54,6 +54,8 @@ If your CARLA archive extracts into a nested package directory, move or symlink 
 ### 1.2 Create a CARLA Python environment
 
 From the repository root, install `requirements-sim.txt`; it pins `carla==0.9.16` to match the CARLA server.
+The `carla` wheel exists for Python 3.10-3.12 only. On Ubuntu 24.04/26.04 (system Python 3.12+/3.14) create the venv with
+`uv venv venv-carla --python 3.12` instead of `python3.10 -m venv` (see §3).
 
 ```bash
 python3.10 -m venv venv-carla

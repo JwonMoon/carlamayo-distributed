@@ -538,5 +538,12 @@ ls runs/$(ls -t runs | head -1)/*.mp4
 [changes-from-upstream.md](changes-from-upstream.md) 검증 기록에 한 줄 남긴다(예: "B를 g6e.2xlarge로, flash-attn 빌드 성공").
 서버를 systemd 서비스로 돌리려면 §4.4.
 
+**이 가이드가 실제로 통과한 조합**
+
+| 환경 | A | B | DCV | CARLA 바이너리 | 결과 |
+|---|---|---|---|---|---|
+| 1 (2026-10-01) | g5.2xlarge, Ubuntu 22.04 Deep Learning AMI(드라이버 포함) | g6e.xlarge, flash-attn 빌드 성공 | 콘솔 세션(GNOME), §1.4.2 | 자동 다운로드 | open-loop·closed-loop 동기까지 |
+| 2 (2026-10-13) | g5.2xlarge, Ubuntu 26.04 일반 AMI(§2.5로 드라이버 설치) | g6e.xlarge, Ubuntu 26.04, flash-attn 없음(SDPA) | 가상 세션(XFCE), §1.4.3 | 환경 1에서 rsync(§3.1 (a), CDN 403) | §6.4 closed-loop까지. §6.5 진행 예정 |
+
 **비용.** 실험이 없을 때는 두 인스턴스를 stop 한다. open-loop만 돌릴 때는 A만 stop 하면 된다.
 인스턴스를 stop/start 하면 공인 IP가 바뀔 수 있고 DCV 세션이 사라진다(§1.4).

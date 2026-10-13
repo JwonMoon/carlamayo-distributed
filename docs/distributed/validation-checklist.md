@@ -7,6 +7,15 @@
 
 상태 표기: ☐ 미완, ◐ 진행 중, ☑ 통과, ✗ 실패(사유 기록)
 
+### 환경별 진행 상태
+
+아래 단계 표의 체크박스는 환경 1의 기록이다. 환경 2는 [porting-guide.md](porting-guide.md) §7 완료 체크리스트로 같은 내용을 검증했다.
+
+| 환경 | A | B | DCV | 검증일 | 상태 |
+|---|---|---|---|---|---|
+| 1 (원래 구성) | g5.2xlarge, Ubuntu 22.04 Deep Learning AMI | g6e.xlarge, flash-attn 2.8.3 빌드됨 | 콘솔 세션, GNOME | 2026-10-01 | 0~4단계 ☑, 6단계 동기 ◐, 5·7·8 ☐ |
+| 2 (2026-10 포팅) | g5.2xlarge, Ubuntu 26.04 일반 AMI(드라이버 수동 설치, CARLA는 환경 1에서 rsync) | g6e.xlarge, Ubuntu 26.04, flash-attn 없음(SDPA 폴백) | 가상 세션, XFCE | 2026-10-13 | 포팅 가이드 §6.4(closed-loop)까지 ☑, §6.5 데모 모드 ☐ |
+
 ---
 
 ## 0. 두 인스턴스 준비
@@ -128,6 +137,6 @@ DCV 세션 안의 터미널에서 실행(SSH면 `export DISPLAY=:0`). 처음엔 
 
 ## 알려진 주의점
 
-- B의 `uv sync`가 flash-attn 빌드에 실패하면 SDPA 폴백이 필요하다. 2026-09-30 B 셋업에서는 flash-attn 2.8.3이 정상 설치됐다.
+- B의 `uv sync`가 flash-attn 빌드에 실패하면 SDPA 폴백으로 동작한다. 환경 1(2026-09-30)에서는 flash-attn 2.8.3이 정상 설치됐고, 환경 2(26.04, 2026-10-13)에서는 import되지 않아 SDPA 폴백으로 돌았다(`verify-inference-host.sh`가 `note: flash-attn not importable`로 표시). 동작에는 문제 없고 추론이 조금 느릴 뿐이다.
 - 가짜 서버는 버전 `fake`를 광고하므로 `carlamayo.py --version 1.5`로는 붙지 않는다(의도된 가드). 1단계는 스니펫으로 검증한다.
 - A→B가 "refused"가 아니라 멈추면 보안그룹, refused면 서버 미기동 또는 `--host` 오타다.
