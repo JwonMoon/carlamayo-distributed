@@ -45,14 +45,15 @@
 | 항목 | 인스턴스 A (시뮬레이터) | 인스턴스 B (추론) |
 |---|---|---|
 | 역할 | CARLA 서버, 인터페이스 `carlamayo.py`, pygame 화면 | 추론 서버 `alpamayo_server.py`, Alpamayo 1.5 모델 |
+| 인스턴스 이름 | `vs-advancedsw-lgadas-simulator-2` | `vs-advancedse-alpamayo-2` |
+| 인스턴스 ID | `i-070688c185887959c` | `i-0d31463ea29c72110` |
 | 인스턴스 타입 | g5.2xlarge (A10G 24 GB) | g6e.xlarge (L40S 48 GB) |
-| 인스턴스 ID | `<i-...>` | `<i-...>` |
-| 사설 IP | `<A_IP>` | `<B_IP>` |
-| 공인 IP / DNS | `<...>` | `<...>` |
-| SSH | `ssh -i <pem> ubuntu@<A 공인 IP>` | `ssh -i <pem> ubuntu@<B 공인 IP>` |
-| 화면 접속 | NICE DCV `https://<A 공인 IP>:8443`, 계정 `ubuntu`, 세션 `simulator-session` (`<가상(XFCE) / 콘솔(GNOME)>`) | 없음 |
-| OS | Ubuntu `<버전>` | Ubuntu `<버전>` |
-| 키페어 | `<이름>.pem` (보관자 `<이름>`) | 동일 |
+| 사설 IP | `172.31.51.167` | `172.31.31.226` |
+| 공인 IP | 탄력적 IP 미설정. AWS 콘솔의 인스턴스 화면에서 확인한다(stop/start 시 변경됨) | 동일 |
+| SSH | `ssh -i vs-advancesw.pem ubuntu@<A 공인 IP>` | `ssh -i vs-advancesw.pem ubuntu@<B 공인 IP>` |
+| 화면 접속 | NICE DCV `https://<A 공인 IP>:8443`, 가상 세션(XFCE) `simulator-session`. 계정은 §3.2 | 없음 |
+| OS | Ubuntu 26.04 LTS | Ubuntu 26.04 LTS |
+| 키페어 | `vs-advancesw.pem` | 동일 |
 
 - 두 인스턴스는 구성과 동작 검증이 완료된 상태로 인계한다. 재구성이 필요한 경우 [porting-guide.md](porting-guide.md)를 따른다.
 - B에서는 추론 서버만 실행한다. 실행 모드 전환(open/closed, 비동기, navigation, CFG, VQA)은 모두 A에서 수행한다.
@@ -71,7 +72,7 @@
 ```bash
 tmux new -s server
 cd ~/carlamayo && source a_venv/bin/activate
-python alpamayo_server.py --version 1.5 --host <B_IP> --port 50051
+python alpamayo_server.py --version 1.5 --host 172.31.31.226 --port 50051
 # Ctrl+B, D 로 세션에서 빠져나온다. 재접속은 tmux attach -t server
 ```
 
@@ -87,12 +88,15 @@ python alpamayo_server.py --version 1.5 --host <B_IP> --port 50051
 start_dcv        # DCV 세션을 확인하고, 없으면 생성한다. 인스턴스 stop/start 후에는 세션이 사라지므로 매번 실행한다
 ```
 
-브라우저에서 `https://<A 공인 IP>:8443`에 접속한다. 자체 서명 인증서 경고는 최초 1회 수락한다. 계정 `ubuntu`로 로그인하면 바탕화면이 표시된다.
+브라우저에서 `https://<A 공인 IP>:8443`에 접속한다. 자체 서명 인증서 경고는 최초 1회 수락한다. 계정 `ubuntu`, 비밀번호 `lge123`으로 로그인하면 바탕화면이 표시된다.
 터미널은 상단 패널의 터미널 아이콘 또는 바탕화면 우클릭 → Applications → Terminal Emulator로 연다.
 
 **정상 동작 기준**
 - `start_dcv` 출력에 `Session: 'simulator-session' ... type:virtual`이 표시된다.
 - 브라우저에 바탕화면과 터미널이 표시되고, 해당 터미널에서 `echo $DISPLAY`가 `:0`을 출력한다.
+
+**알려진 제약.** 본 환경은 Ubuntu 26.04라 DCV를 가상 세션(XFCE)으로만 쓸 수 있다. 26.04의 GNOME 50이 X11 세션을 지원하지 않아 GPU 화면을 직접 중계하는 콘솔 세션이 동작하지 않기 때문이다.
+가상 세션은 소프트웨어 렌더링이라 화면 반응이 느리고 터미널 입력이 밀리는 등 사용성이 떨어진다. 개선하려면 A를 Ubuntu 22.04 또는 24.04로 재구성하여 콘솔 세션(GNOME, GPU 직접 렌더링)을 쓴다([porting-guide.md](porting-guide.md) §0.2, §1.4.2).
 
 ### 3.3 [A] CARLA 서버 실행
 
@@ -114,7 +118,7 @@ cd ~/carla && ./CarlaUE4.sh -RenderOffScreen -quality-level=Epic
 
 ```bash
 cd ~/carlamayo && source venv-sim/bin/activate && export CARLA_ROOT=~/carla
-python carlamayo.py --loop closed --version 1.5 --inference-server <B_IP>:50051 --run-tag sync
+python carlamayo.py --loop closed --version 1.5 --inference-server 172.31.31.226:50051 --run-tag sync
 ```
 
 2~3분 관찰 후 `Esc`로 종료한다. 실행 중 조작은 `Ctrl+P`(일시정지/재개), `Esc`(종료)이다.
@@ -126,7 +130,7 @@ python carlamayo.py --loop closed --version 1.5 --inference-server <B_IP>:50051 
 
 ### 3.5 [A·DCV] 실행 모드 전환
 
-`BASE` = `python carlamayo.py --version 1.5 --inference-server <B_IP>:50051`. 궤적 후보 다중 출력을 제외하고 B는 변경하지 않는다.
+`BASE` = `python carlamayo.py --version 1.5 --inference-server 172.31.31.226:50051`. 궤적 후보 다중 출력을 제외하고 B는 변경하지 않는다.
 
 | 모드 | 명령 | 정상 동작 기준 |
 |---|---|---|
@@ -141,14 +145,14 @@ python carlamayo.py --loop closed --version 1.5 --inference-server <B_IP>:50051 
 # 녹화 데이터가 없는 경우에만 실행 (CARLA 서버 필요, 1~2분 후 Ctrl+C)
 python data_collect.py
 # 녹화 데이터 재생 + 원격 추론
-python carlamayo.py --loop open --version 1.5 --data-root carla_data --inference-server <B_IP>:50051 --run-tag remote
+python carlamayo.py --loop open --version 1.5 --data-root carla_data --inference-server 172.31.31.226:50051 --run-tag remote
 ```
 
 **정상 동작 기준**
 - `Run folder: runs/<run_id>`가 출력되고 프레임마다 `[Frame k] Inference: 2.xx s`가 출력된다.
 - 종료 후 `runs/<run_id>/carla_alpamayo_open_loop_result.mp4`가 생성된다.
 
-### 3.7 [A] 측정 결과 확인 및 회수
+### 3.7 [A] 측정 결과 확인 및 회수 <sub>(측정 항목과 분석 도구는 보완 중)</sub>
 
 ```bash
 RUN=$(ls -t runs | head -1)
@@ -159,6 +163,8 @@ sed -n 1,30p runs/$RUN/summary.md
 **정상 동작 기준**
 - `summary.md`의 headline에 `rtt_mean_s`(왕복 시간), `inference_mean_s`(모델 추론 시간), `overhead_mean_s`(분리로 인한 오버헤드), `request_mb`(요청 크기)가 기록된다.
 - 그래프는 `runs/$RUN/plots/`에 생성된다.
+
+측정이 필요 없으면 실행 명령에 `--no-profile`을 추가한다. 프로파일 CSV를 기록하지 않으며, 영상과 로그가 담기는 결과 폴더 `runs/<run_id>/`는 그대로 생성된다.
 
 결과 회수: 로컬 PC에서 `scp -i <pem> -r ubuntu@<A 공인 IP>:~/carlamayo/runs/<run_id> ./results/`
 
@@ -173,14 +179,16 @@ sed -n 1,30p runs/$RUN/summary.md
 
 ### 3.9 일괄 점검
 
-문제 위치가 불명확한 경우 다음 스크립트가 환경·연결·서버 상태를 PASS/FAIL로 출력한다.
+문제 위치가 불명확한 경우 다음 스크립트가 환경·연결·서버 상태를 PASS/FAIL로 출력한다. 두 스크립트 모두 **B의 추론 서버(3.1)가 실행 중이어야** 서버·연결 항목이 PASS가 된다. CARLA 서버는 필요하지 않다.
 
 ```bash
-# [B]
+# [B]  서버 실행 후
 deploy/scripts/verify-inference-host.sh --serving
-# [A]
+# [A]  B 서버 실행 후
 deploy/scripts/verify-sim-host.sh --link
 ```
+
+옵션(`--serving`, `--link`) 없이 실행하면 서버 없이도 각 인스턴스의 환경 항목(드라이버, venv, 의존성, `hosts.env`)만 점검한다.
 
 ---
 
@@ -188,7 +196,7 @@ deploy/scripts/verify-sim-host.sh --link
 
 | 증상 | 원인 및 조치 |
 |---|---|
-| `no inference server at <B_IP>:50051 after 30s` | B의 추론 서버가 실행 중이 아니다. [B] `ss -ltnp \| grep 50051`로 확인 후 3.1 수행. 실행 중이면 [A] `nc -zv <B_IP> 50051`로 연결 확인 |
+| `no inference server at 172.31.31.226:50051 after 30s` | B의 추론 서버가 실행 중이 아니다. [B] `ss -ltnp \| grep 50051`로 확인 후 3.1 수행. 실행 중이면 [A] `nc -zv 172.31.31.226 50051`로 연결 확인 |
 | `nc` 응답 없음 (timed out) | B 보안그룹이 A의 TCP 22·50051을 허용하지 않는다. B 인바운드에 A의 보안그룹 ID를 추가 |
 | `server is not warmed up` | 모델 로드·워밍업 진행 중. B 로그에 `SERVING`이 출력될 때까지 대기 |
 | B 로그에 `401`/`403` | Hugging Face 모델 접근 권한 미승인 또는 계정 불일치. porting-guide §4.2 |
@@ -210,7 +218,7 @@ deploy/scripts/verify-sim-host.sh --link
 - VQA는 차량 정지 상태에서만 동작한다.
 - 영상은 메모리에 누적 후 종료 시 저장된다(1080p 10분 ≈ 6 GB). 2~3분 단위로 나누어 실행한다.
 - `DISPLAY` 환경변수는 pygame 창에만 필요하다. CARLA 서버, 추론 서버, open-loop, 측정은 `DISPLAY` 없이 실행하며 `~/.bashrc`에 고정하지 않는다.
-- 스크립트(`deploy/scripts/*`, `tools/fetch_server_profile.sh`)는 `deploy/hosts.env`의 주소를 사용한다. 명령줄의 `<B_IP>`는 직접 입력한다.
+- 스크립트(`deploy/scripts/*`, `tools/fetch_server_profile.sh`)는 `deploy/hosts.env`의 주소를 사용한다. 명령줄의 B 주소(`172.31.31.226`)는 직접 입력한다.
 - Hugging Face 토큰은 B에만 둔다. gRPC는 VPC 내부 평문 통신이며 50051 포트를 외부에 개방하지 않는다.
 
 ---
