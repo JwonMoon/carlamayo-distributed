@@ -94,7 +94,7 @@
 
 ## 6. closed-loop
 
-DCV 세션 터미널에서 실행(또는 `export DISPLAY=:0`). 처음엔 2~3분만 돌리고 Esc.
+DCV 세션 안의 터미널에서 실행(SSH면 `dcv describe-session demo`의 display 값으로 `export DISPLAY`). 처음엔 2~3분만 돌리고 Esc.
 
 | 상태 | 모드 | 어디 | 명령 | 통과 기준 |
 |---|---|---|---|---|

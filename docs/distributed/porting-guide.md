@@ -91,29 +91,53 @@ EOF
 ssh <B 사설 IP> hostname      # B의 호스트명이 나오면 통과
 ```
 
-### 1.4 NICE DCV (A, 선택)
+### 1.4 NICE DCV (A, 선택) — 가상 세션
 
-pygame 창을 보려면 A에 DCV 서버를 설치하고 가상 세션을 만든다. DCV 없이도 open-loop·closed-loop(`--no-pygame-ui`)·측정은
+pygame 창을 보려면 A에 DCV 서버를 설치하고 **가상 세션**을 만든다. DCV 없이도 open-loop·closed-loop(`--no-pygame-ui`)·측정은
 전부 가능하고, 영상은 `runs/<run_id>/*.mp4`로 남으므로 scp로 받아 보면 된다.
 
-**설치 순서 (Ubuntu 22.04, 드라이버가 먼저 깔려 있어야 한다 → §2.5)**
+**전제 두 가지**
+- NVIDIA 드라이버(§2.5). DCV 가상 세션 자체는 GPU 없이도 뜨지만 CARLA가 드라이버를 요구하므로 어차피 먼저 깐다.
+- **데스크톱 환경.** 서버 AMI에는 없고, 없으면 세션이 만들어져도 화면이 무한 로딩이다. 아래 1)에서 깐다.
+
+**설치 순서 (Ubuntu 22.04, 약 15분)**
 
 ```bash
-# [A]  1) 패키지: AWS "NICE DCV 다운로드" 페이지에서 Ubuntu 22.04 x86_64 tgz 주소를 복사해 넣는다
+# [A]  1) 데스크톱 환경 (가상 세션이 띄울 GNOME)
+sudo apt-get update && sudo apt-get install -y ubuntu-desktop-minimal
+
+# 2) DCV 패키지: AWS "NICE DCV 다운로드" 페이지에서 Ubuntu 22.04 x86_64 tgz 주소를 복사해 넣는다
 cd /tmp && wget https://d1uj6qtbmh3dt5.cloudfront.net/NICE-GPG-KEY && gpg --import NICE-GPG-KEY
 wget <nice-dcv-<버전>-ubuntu2204-x86_64.tgz 주소> && tar xzf nice-dcv-*-ubuntu2204-x86_64.tgz && cd nice-dcv-*-x86_64
 sudo apt-get install -y ./nice-dcv-server_*.deb ./nice-xdcv_*.deb ./nice-dcv-gl_*.deb ./nice-dcv-web-viewer_*.deb
+#   nice-xdcv = 가상 세션용 X 서버(필수), nice-dcv-gl = 세션 안 GL 가속(선택, pygame에는 불필요)
+
+# 3) 설정
 sudo usermod -aG video dcv
-# 2) 서버 켜기, 로그인 비밀번호, 가상 세션
+sudo systemctl set-default multi-user.target     # gdm(로그인 화면)은 가상 세션에 필요 없으므로 부팅 때 띄우지 않는다
 sudo systemctl enable --now dcvserver
-sudo passwd ubuntu                                            # DCV 로그인에 쓸 비밀번호
+sudo passwd ubuntu                               # DCV 로그인에 쓸 비밀번호
+
+# 4) 가상 세션
 sudo dcv create-session --type virtual --owner ubuntu demo
-dcv list-sessions                                             # demo 세션이 보여야 한다
+dcv list-sessions                                # Session: 'demo' (owner:ubuntu type:virtual)
 ```
 
-브라우저 또는 DCV 클라이언트로 `https://<A 공인 IP>:8443` 접속(보안그룹 8443은 §1.2). 자체 서명 인증서라
-처음 한 번은 경고를 수락해야 한다. **인스턴스를 stop/start 하면 가상 세션이 사라진다.** 접속 전에
-`dcv list-sessions`로 확인하고 없으면 `create-session`을 다시 친다. 접속이 Connecting에서 멈추면 §8.
+브라우저 또는 DCV 클라이언트로 `https://<A 공인 IP>:8443` 접속(보안그룹 8443은 §1.2), `ubuntu`로 로그인. 자체 서명 인증서라
+처음 한 번은 경고를 수락해야 한다.
+
+**인스턴스를 stop/start 하면 가상 세션이 사라진다.** 접속 전에 한 번 치도록 `~/.bashrc`에 alias를 둔다.
+
+```bash
+alias start_dcv='sudo systemctl start dcvserver && (dcv list-sessions | grep -q demo || sudo dcv create-session --type virtual --owner ubuntu demo) && dcv list-sessions'
+```
+
+**DISPLAY 번호.** 가상 세션의 디스플레이는 `:0`이 아니다. `carlamayo.py`는 DCV 세션 안의 터미널에서 실행하면 자동으로 맞고,
+SSH 터미널에서 띄워야 하면 `dcv describe-session demo | grep -i display`에 나온 값(예: `:1`)을 `export DISPLAY=:1`로 준다.
+
+콘솔 세션(`--type console`)은 부팅 때 gdm이 GPU 위에 띄운 Xorg `:0`을 중계하는 방식이라 gdm3, Wayland 끄기, `nvidia-xconfig`가
+더 필요하고 헤드리스 EC2에서 Xorg가 안 뜨면 추적이 번거롭다. 이 가이드는 가상 세션만 다룬다. 콘솔 세션이 남아 있으면
+`sudo dcv close-session <이름>`으로 닫고 가상 세션을 만든다. 접속이 Connecting이나 로딩에서 멈추면 §8.
 
 ---
 
@@ -351,14 +375,14 @@ ls runs/$(ls -t runs | head -1)/*.mp4
 | `carla` 휠 설치 실패 | PyPI에 해당 Python 휠 없음 | `pip install ~/carla/PythonAPI/carla/dist/carla-0.9.16-*.whl` |
 | `agents.navigation.controller` 없음 | `CARLA_ROOT` 미설정 | `export CARLA_ROOT=~/carla` (bashrc 확인) |
 | `nvidia-smi: command not found` | 일반 Ubuntu AMI라 드라이버 없음 | §2.5 |
-| DCV 웹 접속이 Connecting에서 멈춤 | ① 드라이버 없음(가상 세션이 못 뜸) ② stop/start 뒤 세션 소멸 ③ dcvserver 중지 ④ 공인 IP 변경·8443 미개방 ⑤ 브라우저가 자체 서명 인증서 거부 | ① `nvidia-smi` → §2.5 ② `dcv list-sessions` 비면 `sudo dcv create-session --type virtual --owner ubuntu demo` ③ `sudo systemctl restart dcvserver` ④ 로컬에서 `nc -zv <A 공인 IP> 8443`, §1.2 ⑤ 주소를 직접 열어 경고 수락하거나 네이티브 DCV 클라이언트. 로그 `/var/log/dcv/server.log` |
+| DCV 웹 접속이 Connecting·로딩에서 멈춤 | ⓪ **데스크톱 환경 없음 또는 세션이 `console` 타입**(서버 AMI에서 가장 흔함) ① 드라이버 없음 ② stop/start 뒤 세션 소멸 ③ dcvserver 중지 ④ 공인 IP 변경·8443 미개방 ⑤ 브라우저가 자체 서명 인증서 거부 | ⓪ `dpkg -l \| grep ubuntu-desktop` 비면 §1.4 1)부터, `dcv list-sessions`에 `type:console`이면 close-session 후 가상 세션 ① `nvidia-smi` → §2.5 ② `dcv list-sessions` 비면 `sudo dcv create-session --type virtual --owner ubuntu demo` ③ `sudo systemctl restart dcvserver` ④ 로컬에서 `nc -zv <A 공인 IP> 8443`, §1.2 ⑤ 주소를 직접 열어 경고 수락하거나 네이티브 DCV 클라이언트. 로그 `/var/log/dcv/server.log` |
 | CARLA가 바로 죽음 | Vulkan 없음 / GPU 드라이버 | `sudo apt-get install -y libvulkan1`, `nvidia-smi` 확인 |
 | B `uv sync`에서 flash-attn 빌드 실패 | `nvcc` 없음 | 스크립트가 자동으로 제외. 느리지만 동작 |
 | 모델 다운로드 401/403 | 게이트 미승인 또는 토큰 없음 | 모델 페이지에서 접근 요청, `hf auth login` |
 | `no inference server at …:50051 after 30s` | B 서버 안 뜸 / 보안그룹 / 프록시 | §5 표 |
 | `serves Alpamayo '2' but --version '1.5'` | A·B `--version` 불일치 | 맞춘다 |
 | `NUM_FRAMES: client 4 != server …` | 커밋 불일치 | 양쪽 `git pull` |
-| pygame 창이 안 뜸 | DCV 세션 밖 | DCV 터미널 또는 `export DISPLAY=:0` 또는 `--no-pygame-ui` |
+| pygame 창이 안 뜸 | DCV 세션 밖 | DCV 세션 안의 터미널, 또는 `export DISPLAY=<describe-session의 display 값>`(§1.4), 또는 `--no-pygame-ui` |
 | 영상이 없음 | 강제 종료 | Esc/Ctrl+C로 종료 |
 
 ---
