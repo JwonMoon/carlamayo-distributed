@@ -18,7 +18,9 @@ if [ ! -f "$CARLA_DIR/CarlaUE4.sh" ]; then
     if ! wget "$CARLA_URL" -O carla-0.9.16.tar.gz || [ "$(stat -c %s carla-0.9.16.tar.gz)" -lt 1000000 ]; then
       rm -f carla-0.9.16.tar.gz
       echo "ERROR: CARLA download failed ($CARLA_URL)."
-      echo "       Download CARLA 0.9.16 (Linux) in a browser, copy it to $CARLA_DIR/carla-0.9.16.tar.gz with scp, then re-run this script."
+      echo "       The CDN often answers 403 to AWS instances. Either rsync ~/carla/ from an existing sim host"
+      echo "       (rsync -a ubuntu@<old-sim-host>:~/carla/ $CARLA_DIR/), or download CARLA 0.9.16 (Linux) in a browser,"
+      echo "       copy it to $CARLA_DIR/carla-0.9.16.tar.gz with scp, then re-run this script."
       exit 1
     fi
   fi

@@ -248,7 +248,23 @@ nvidia-smi                                    # GPU 이름(A10G / L40S)과 드�
 
 ## 3. [A] 시뮬레이터 호스트
 
-### 3.1 설치 (약 20분, CARLA 다운로드 포함)
+### 3.1 설치 (약 20분, CARLA 바이너리 준비 포함)
+
+**CARLA 바이너리 준비 (스크립트 실행 전).** CARLA 0.9.16 Linux 바이너리(약 17 GB)가 `~/carla/CarlaUE4.sh`에 있어야 한다.
+아래 세 경로 중 위에서부터 되는 것을 쓴다. 이미 `~/carla/CarlaUE4.sh`가 있으면 스크립트는 다운로드를 건너뛴다.
+
+| 경로 | 언제 | 명령 |
+|---|---|---|
+| (a) **기존 시뮬레이터 인스턴스에서 복사** | 이전 A가 남아 있을 때. 사설망이라 수 분이면 끝남 (2026-10 포팅에서 쓴 방법) | 아래 블록 |
+| (b) 스크립트의 자동 다운로드 | 기존 인스턴스가 없을 때 | 스크립트가 `tiny.carla.org`에서 받는다. **AWS 인스턴스에서는 CDN이 403을 돌려주는 경우가 있다**(2026-10 확인, User-Agent를 바꿔도 동일) |
+| (c) 로컬 PC에서 받아 올리기 | (b)가 403일 때 | 브라우저로 https://github.com/carla-simulator/carla/releases/tag/0.9.16 의 Linux tar.gz를 받고 `scp -i <pem> CARLA_0.9.16.tar.gz ubuntu@<A 공인 IP>:~/carla/carla-0.9.16.tar.gz`. 공인망이라 수십 분 |
+
+```bash
+# [새 A]  (a) 이전 A의 pem이 ~/.ssh에 있어야 한다. 이전 A가 stop 상태면 잠깐 start 했다가 복사 후 다시 stop
+rsync -a --info=progress2 -e "ssh -i ~/.ssh/<이전 키>.pem -o StrictHostKeyChecking=accept-new" \
+  ubuntu@<OLD_A_IP>:~/carla/ ~/carla/
+ls ~/carla/CarlaUE4.sh            # 보이면 준비 끝. rsync가 멈추면 nc -zv <OLD_A_IP> 22 로 보안그룹 확인
+```
 
 ```bash
 # [A]
@@ -256,9 +272,10 @@ cd ~/carlamayo && deploy/scripts/setup-sim-host.sh
 source ~/.bashrc            # CARLA_ROOT 반영
 ```
 
-스크립트가 하는 일: `ffmpeg`, `libvulkan1`, `rsync`, `netcat`, `curl` 설치 → `uv`로 **Python 3.12** 내려받아 `venv-sim` 생성(OS 기본 Python과 무관. carla 휠은 3.10~3.12만 있고 26.04는 3.14) → CARLA 0.9.16 바이너리를 `~/carla`에 풀기 →
-`CARLA_ROOT` 등록 → `venv-sim`(torch 없음) 생성 후 `requirements-sim.txt` 설치.
-`carla` 휠이 PyPI에 없다고 나오면 안내대로 `pip install ~/carla/PythonAPI/carla/dist/carla-0.9.16-*.whl`.
+스크립트가 하는 일, 순서대로: `ffmpeg`, `libvulkan1`, `rsync`, `netcat`, `curl` 설치 → `~/carla/CarlaUE4.sh`가 없을 때만 CARLA 다운로드·압축 해제(실패·0바이트·중첩 폴더면 오류로 멈춤) →
+`CARLA_ROOT`를 `~/.bashrc`에 등록 → `uv`로 **Python 3.12**를 내려받아 `venv-sim` 생성(OS 기본 Python과 무관. carla 휠은 3.10~3.12만 있고 26.04는 3.14) →
+`uv pip install -r requirements-sim.txt`(torch 없음).
+`carla` 휠 설치가 실패하면 안내대로 `VIRTUAL_ENV=$PWD/venv-sim uv pip install ~/carla/PythonAPI/carla/dist/carla-0.9.16-*.whl`.
 
 ### 3.2 확인
 
@@ -430,7 +447,8 @@ ls runs/$(ls -t runs | head -1)/*.mp4
 | 증상 | 원인 | 조치 |
 |---|---|---|
 | `setup-inference-host.sh`가 `ensurepip` 오류로 멈춤 | 옛 버전 스크립트 | 최신 커밋으로 `git pull`(uv pip 사용) |
-| `setup-sim-host.sh`가 apt 뒤 조용히 끝남, `~/carla/carla-0.9.16.tar.gz`가 0바이트 | CARLA 다운로드 실패(옛 스크립트는 오류를 숨겼음) | `git pull` 후 재실행하면 오류가 보인다. 그래도 안 받아지면 브라우저로 CARLA 0.9.16 Linux를 받아 `scp`로 `~/carla/carla-0.9.16.tar.gz`에 올리고 재실행 |
+| CARLA 다운로드가 `403 Forbidden` (`carla-releases.b-cdn.net`) | CDN이 AWS 인스턴스의 요청을 거부. User-Agent를 바꿔도 같음 | 기존 시뮬레이터 인스턴스에서 `rsync`(§3.1 (a)) 또는 로컬 PC 브라우저로 받아 `scp`(§3.1 (c)) |
+| `setup-sim-host.sh`가 apt 뒤 조용히 끝남, `~/carla/carla-0.9.16.tar.gz`가 0바이트 | 옛 스크립트가 다운로드 오류를 숨겼음 | `git pull` 후 재실행하면 오류가 보인다. 403이면 위 행 |
 | `carla` 휠 설치 실패 | PyPI에 해당 Python 휠 없음(venv가 3.12가 아님) | `ls venv-sim/bin/python* && venv-sim/bin/python --version`이 3.12인지. 아니면 `rm -rf venv-sim` 후 스크립트 재실행. 그래도 안 되면 `VIRTUAL_ENV=$PWD/venv-sim uv pip install ~/carla/PythonAPI/carla/dist/carla-0.9.16-*.whl` |
 | `agents.navigation.controller` 없음 | `CARLA_ROOT` 미설정 | `export CARLA_ROOT=~/carla` (bashrc 확인) |
 | `nvidia-smi: command not found` | 일반 Ubuntu AMI라 드라이버 없음 | §2.5 |
