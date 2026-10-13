@@ -123,7 +123,7 @@ block-beta
     class G1,G4 link
 ```
 
-OS 행의 `Ubuntu 22.04`는 [deploy/aws/README.md](../../deploy/aws/README.md)의 권장 AMI 기준이며 실제 인스턴스에서
+OS 행의 `Ubuntu 22.04`는 [porting-guide.md](porting-guide.md) §0.2의 권장 AMI 기준이며 실제 인스턴스에서
 `lsb_release -a`로 확인한다.
 
 ---

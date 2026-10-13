@@ -83,6 +83,17 @@ CARLA 포트(2000~2002, 8000)는 어디에도 열지 않는다. gRPC는 평문�
 > 증상으로 구분: B의 규칙이 없으면 A에서 `nc -zv <B IP> 50051`이 **멈추다가 timed out**. 규칙은 있는데 서버가 안 떠 있으면
 > **즉시 refused**.
 
+**보안그룹 편집 권한이 없을 때.** 콘솔에 `ec2:DescribeSecurityGroupRules 권한이 없습니다`가 뜨면 관리자에게 아래처럼 요청한다. `<...>`는 자기 값.
+
+> 시뮬레이터 인스턴스 A(`<A 사설 IP>`, `<sg-A>`)에서 추론 인스턴스 B(`<B 사설 IP>`, `<sg-B>`)로
+> 내부망 SSH(22)·gRPC(50051) 접속이 필요합니다. B의 보안그룹이 사무실 IP만 허용해 막혀 있습니다.
+> (1) B에 sg-A를 추가 연결하거나, (2) sg-B 인바운드에 TCP 22·50051(원본 sg-A)을 추가해
+> 주시거나, (3) 제 IAM 사용자에 `ec2:DescribeSecurityGroupRules`, `ec2:DescribeSecurityGroups`,
+> `ec2:AuthorizeSecurityGroupIngress`, `ec2:ModifyInstanceAttribute` 권한을 부여해 주세요.
+> 모두 VPC 내부 트래픽이며 외부 개방은 없습니다.
+
+(1)에 필요한 권한은 `ec2:ModifyInstanceAttribute`, (2)는 `ec2:AuthorizeSecurityGroupIngress`.
+
 ### 1.3 A → B SSH 키
 
 A에서 B로 `ssh`/`rsync`가 비밀번호 없이 되어야 프로파일 회수 스크립트가 동작한다. 키페어 pem을 A에 올리고 `~/.ssh/config`에 등록한다.
@@ -344,6 +355,21 @@ deploy/scripts/verify-inference-host.sh
 기대: `== 0 FAIL`. 항목: nvidia-smi, VRAM ≥ 30 GB, 디스크 ≥ 40 GB, a_venv, 서브모듈, torch+CUDA, 의존성, flash-attn(참고),
 서버 모듈 import, HF 로그인, **모델 게이트 접근 가능**, hosts.env, `INFERENCE_HOST_IP`가 이 머신의 주소인지.
 
+### 4.4 (선택) 서버를 systemd 서비스로
+
+기본은 §6.1처럼 `tmux`에서 직접 띄우는 것이다. 서비스로 등록하면 터미널을 닫아도 유지되고 재부팅·크래시 시 자동으로 다시 뜬다. 둘 중 하나만 쓴다.
+
+```bash
+# [B]
+sudo cp ~/carlamayo/deploy/systemd/alpamayo-server.service /etc/systemd/system/
+sudo nano /etc/systemd/system/alpamayo-server.service   # User=, WorkingDirectory=, ExecStart= 경로와 --host <B 사설 IP>
+sudo systemctl daemon-reload
+sudo systemctl enable --now alpamayo-server
+journalctl -u alpamayo-server -f                        # SERVING ... warmed_up=True 까지 수 분
+```
+
+모델 로드 + 워밍업이 수 분 걸리므로 유닛의 `TimeoutStartSec=900`이다. 로그는 `journalctl -u alpamayo-server`, 중지는 `sudo systemctl stop alpamayo-server`.
+
 ---
 
 ## 5. A ↔ B 연결 확인 (모델 없이, 5분)
@@ -510,4 +536,7 @@ ls runs/$(ls -t runs | head -1)/*.mp4
 
 인스턴스 종류·OS·GPU가 다르면 [validation-checklist.md](validation-checklist.md) 0단계 표와
 [changes-from-upstream.md](changes-from-upstream.md) 검증 기록에 한 줄 남긴다(예: "B를 g6e.2xlarge로, flash-attn 빌드 성공").
-`deploy/systemd/alpamayo-server.service`를 쓰려면 `<INFERENCE_HOST_IP>`와 경로를 바꾼 뒤 복사한다.
+서버를 systemd 서비스로 돌리려면 §4.4.
+
+**비용.** 실험이 없을 때는 두 인스턴스를 stop 한다. open-loop만 돌릴 때는 A만 stop 하면 된다.
+인스턴스를 stop/start 하면 공인 IP가 바뀔 수 있고 DCV 세션이 사라진다(§1.4).

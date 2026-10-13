@@ -38,7 +38,6 @@
 | [docs/distributed/alpamayo15-notebooks-guide.md](docs/distributed/alpamayo15-notebooks-guide.md) | 공식 Alpamayo 1.5 노트북 안내와 g6e.xlarge 실행 가능성 |
 | [docs/distributed/diagrams/](docs/distributed/diagrams/) | 위 문서의 다이어그램 SVG |
 | `docs/distributed/demo-overview*.pptx` (git 제외) | 라이브 데모용 오버뷰 장표 (17장 전체 버전 / 8장 요약 버전). `.gitignore`에서 `*.ppt`, `*.pptx`를 무시하므로 저장소에 없음. 필요하면 별도로 전달받아 같은 경로에 둔다 |
-| [deploy/aws/README.md](deploy/aws/README.md) | 포팅 가이드 보조: 보안그룹 권한 요청 문구, systemd 서비스 등록, 비용 |
 
 분리 실행의 핵심 진입점:
 

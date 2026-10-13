@@ -347,7 +347,7 @@ B에서 바꿀 일이 있는 것은 모델 로딩 옵션(`--version`, `--quantiz
 | 방법 | 명령 | 비고 |
 |---|---|---|
 | 직접 실행 (1부 1단계) | `tmux new -s server` → `python alpamayo_server.py --version 1.5 --host <B_IP> --port 50051` | SSH가 끊겨도 tmux 안에서 유지 |
-| systemd 서비스 | `sudo systemctl start alpamayo-server && journalctl -u alpamayo-server -f` | 터미널을 닫아도 유지, 재부팅·크래시 시 자동 재시작. 등록은 [deploy/aws/README.md](../../deploy/aws/README.md) |
+| systemd 서비스 | `sudo systemctl start alpamayo-server && journalctl -u alpamayo-server -f` | 터미널을 닫아도 유지, 재부팅·크래시 시 자동 재시작. 등록은 [porting-guide.md](porting-guide.md) §4.4 |
 | 궤적 후보 4개 | 위 명령 + `--num-traj-samples 4` | A 쪽 옵션 없음(핸드셰이크로 서버 값을 받음) |
 | 모델 없이 네트워크만 | `python alpamayo_server.py --fake --host <B_IP> --port 50051` | GPU·가중치 불필요. A에서 `nc -zv <B_IP> 50051`, 왕복은 `deploy/scripts/verify-sim-host.sh --link` |
 
