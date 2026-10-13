@@ -41,9 +41,9 @@ if command -v hf >/dev/null; then
 else
   fail "hf CLI not found (pip install -U huggingface_hub)"
 fi
-$PY - <<'EOF' 2>/dev/null && pass "model repo nvidia/Alpamayo-R1-1.5 accessible (gate approved)" || fail "cannot access nvidia/Alpamayo-R1-1.5 on Hugging Face (request access on the model page, then hf auth login)"
+$PY - <<'EOF' 2>/dev/null && pass "model repo nvidia/Alpamayo-1.5-10B accessible (gate approved)" || fail "cannot access nvidia/Alpamayo-1.5-10B on Hugging Face (request access on the model page, then hf auth login)"
 from huggingface_hub import HfApi
-HfApi().model_info("nvidia/Alpamayo-R1-1.5")
+HfApi().model_info("nvidia/Alpamayo-1.5-10B")
 EOF
 [ -f deploy/hosts.env ] && pass "deploy/hosts.env present (bind IP $INFERENCE_HOST_IP:$INFERENCE_PORT)" || fail "deploy/hosts.env missing (cp deploy/hosts.env.example deploy/hosts.env and edit)"
 my_ips="$( (ip -4 -o addr 2>/dev/null | awk '{print $4}' | cut -d/ -f1; hostname -I 2>/dev/null | tr ' ' '\n') | sort -u)"

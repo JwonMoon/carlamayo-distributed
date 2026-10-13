@@ -53,7 +53,7 @@ B에서 flash-attn을 빌드하려면 CUDA Toolkit(`nvcc`)이 있어야 하지�
 |---|---|
 | AWS | 두 인스턴스에 SSH 가능한 **키페어 하나**(같은 pem을 A·B에 등록하면 A→B 접속이 쉽다), 보안그룹 편집 권한(없으면 관리자에게 §1.2 규칙을 요청) |
 | GitHub | 이 저장소 읽기 권한 |
-| Hugging Face | 계정 + **`nvidia/Alpamayo-R1-1.5` 모델 게이트 승인**(모델 페이지에서 요청, 승인까지 수 시간~수일) + 토큰(read) |
+| Hugging Face | 계정 + **`nvidia/Alpamayo-1.5-10B` 모델 게이트 승인**(모델 페이지에서 요청, 승인까지 수 시간~수일) + 토큰(read) |
 | NICE DCV | A에 DCV 서버 설치(pygame 창을 보기 위해). AWS 라이선스로 EC2에서는 무료. 또는 SSH 터미널 + `--no-pygame-ui`로 창 없이 진행 가능 |
 
 ---

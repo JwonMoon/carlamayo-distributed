@@ -57,7 +57,7 @@
 |---|---|---|---|
 | 1 | 로컬 PC | pem을 받아 `chmod 400`, `ssh -i <pem> <user>@<A 공인 IP>`와 B 접속 | 프롬프트가 뜬다 |
 | 2 | [B] | Hugging Face **본인 계정**으로 로그인: `source ~/carlamayo/a_venv/bin/activate && hf auth login` | `hf auth whoami`에 본인 계정 |
-| 3 | [B] | 모델 게이트 승인 확인: https://huggingface.co/nvidia/Alpamayo-R1-1.5 에서 접근 요청(승인까지 수 시간~수일). 인계 전에 미리 신청한다 | 모델 페이지에 "Gated model: you have been granted access" |
+| 3 | [B] | 모델 게이트 승인 확인: https://huggingface.co/nvidia/Alpamayo-1.5-10B 에서 접근 요청(승인까지 수 시간~수일). 인계 전에 미리 신청한다 | 모델 페이지에 "Gated model: you have been granted access" |
 | 4 | [A], [B] | `cd ~/carlamayo && git pull && cat deploy/hosts.env` | `SIM_HOST_IP=<A_IP>`, `INFERENCE_HOST_IP=<B_IP>`가 이 페이지와 같다 |
 | 5 | [B] | `deploy/scripts/verify-inference-host.sh` | 마지막 줄 `== 0 FAIL` |
 | 6 | [A] | `deploy/scripts/verify-sim-host.sh` | 마지막 줄 `== 0 FAIL` |

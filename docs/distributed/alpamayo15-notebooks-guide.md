@@ -30,7 +30,7 @@ minADE로 끝난다. (렌더링: [diagrams/official-open-loop.svg](diagrams/offi
 
 ```mermaid
 flowchart LR
-    HF["Hugging Face (게이트 승인 필요)<br/>모델 가중치 nvidia/Alpamayo-R1-1.5<br/>데이터셋 nvidia/PhysicalAI-Autonomous-Vehicles"]
+    HF["Hugging Face (게이트 승인 필요)<br/>모델 가중치 nvidia/Alpamayo-1.5-10B<br/>데이터셋 nvidia/PhysicalAI-Autonomous-Vehicles"]
     subgraph HOST["GPU 호스트 1대 (예: B g6e.xlarge, 또는 24 GB 이상 GPU PC)"]
         direction LR
         subgraph NB["Jupyter 노트북 프로세스 (inference*.ipynb, Python 3.12, torch 포함)"]
