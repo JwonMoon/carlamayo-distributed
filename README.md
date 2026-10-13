@@ -19,13 +19,14 @@
 
 ## 이 포크에 대하여 (carlamayo-distributed)
 
-이 저장소는 [aveeslab/Carlamayo](https://github.com/aveeslab/Carlamayo)를 히스토리째 가져와
-**CARLA 인스턴스와 Alpamayo 인스턴스를 분리해 실행**하도록 개조하는 작업 공간이다.
+CARLA와 Alpamayo의 연동을 테스트하기 위해 오픈소스 [aveeslab/Carlamayo](https://github.com/aveeslab/Carlamayo)를 가져와,
+한 머신에서 함께 돌리던 **CARLA 시뮬레이터와 Alpamayo 추론 모델을 서로 다른 인스턴스에서 실행**하도록 개조한 저장소다.
 분석·설계·운영 문서(한국어)는 `docs/distributed/` 아래에 있다. `docs/` 바로 아래의 영어 문서는
 업스트림 원본이다(일부는 두 호스트 구성에 맞게 손봤고, 그 내역은 변경 기록에 있다).
 
-> **구성된 인스턴스를 받아 데모를 돌리려는 분은 [docs/distributed/user-guide.md](docs/distributed/user-guide.md)부터 읽는다.**
-> 개요, 시스템 구성도, 운영 절차와 단계별 정상 동작 기준, 문제 해결이 한 문서에 있다. 환경 구성 절차는 porting-guide에 있다.
+> - **구성된 인스턴스를 받아 데모를 돌리려는 분**: [docs/distributed/user-guide.md](docs/distributed/user-guide.md)
+> - **환경 구성 절차**(새 인스턴스 두 대에 처음부터): [docs/distributed/porting-guide.md](docs/distributed/porting-guide.md)
+> - **데모 당일 순서와 모든 실행 옵션**: [docs/distributed/demo-runbook.md](docs/distributed/demo-runbook.md)
 
 | 문서 | 내용 |
 |---|---|
