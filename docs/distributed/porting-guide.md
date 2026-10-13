@@ -6,8 +6,8 @@ CARLA 바이너리 다운로드가 대부분). 각 절 끝의 **확인** 명령�
 
 문서 역할 구분:
 - 이 문서: 포팅(최초 구성 + 동작 확인). 한 번 끝나면 다시 볼 일이 없다.
-- [demo-runbook.md](demo-runbook.md): 구성이 끝난 뒤 데모를 돌리는 순서.
-- [cheatsheet.md](cheatsheet.md): 모든 명령·옵션 참조. [validation-checklist.md](validation-checklist.md): 단계별 검증 기록.
+- [demo-runbook.md](demo-runbook.md): 구성이 끝난 뒤 데모를 돌리는 순서(1부)와 모든 명령·옵션 참조(2부).
+- [validation-checklist.md](validation-checklist.md): 단계별 검증 기록.
 - 구조가 궁금하면 [distributed-architecture.md](distributed-architecture.md).
 
 표기: **[A]** 시뮬레이터 호스트에서, **[B]** 추론 호스트에서, **[PC]** 작업 PC에서 실행.

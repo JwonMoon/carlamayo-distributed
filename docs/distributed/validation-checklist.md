@@ -3,7 +3,7 @@
 실제 두 인스턴스(A: g5.2xlarge `172.31.38.219`, B: g6e.xlarge `172.31.20.213`)에서 코드가
 동작하는지 **순서대로** 확인하는 절차다. 앞 단계가 통과해야 뒤 단계가 의미 있다. 각 단계의
 체크박스와 "기록" 칸을 진행하면서 채우고, 막히면 그 단계의 터미널 출력과
-`runs/<run_id>/log.txt`를 공유한다. 명령의 상세는 [cheatsheet.md](cheatsheet.md).
+`runs/<run_id>/log.txt`를 공유한다. 명령의 상세는 [demo-runbook.md](demo-runbook.md).
 
 상태 표기: ☐ 미완, ◐ 진행 중, ☑ 통과, ✗ 실패(사유 기록)
 

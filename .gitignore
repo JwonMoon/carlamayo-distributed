@@ -242,3 +242,5 @@ deploy/hosts.env
 # presentation decks (built outside git; see README doc index)
 *.ppt
 *.pptx
+# local tool cache
+.tach
