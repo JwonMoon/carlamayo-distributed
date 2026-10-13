@@ -395,13 +395,27 @@ nvidia-smi                                              # 약 21~24 GB
 
 첫 실행은 가중치 22 GB를 내려받는다. `401/403`이면 모델 게이트 미승인, 디스크 오류면 `df -h`.
 
-### 6.2 [A] open-loop (CARLA 불필요, 원격 추론 경로 검증)
+### 6.2 [A] CARLA 서버 기동과 녹화 데이터
 
-녹화 데이터가 없으면 먼저 만든다(CARLA가 떠 있어야 함, 1~2분):
+open-loop 실행 자체는 CARLA가 필요 없지만, 입력으로 쓸 녹화 데이터(`carla_data/`)를 만드는 `data_collect.py`와 6.3의 closed-loop는
+CARLA 서버가 떠 있어야 한다. 먼저 켠다.
+
 ```bash
-# [A]
-python data_collect.py        # 1~2분 뒤 Ctrl+C → carla_data/
+# [A]  CARLA 서버 (화면 불필요, SSH 터미널의 tmux에서)
+tmux new -s carla
+cd ~/carla && ./CarlaUE4.sh -RenderOffScreen -quality-level=Epic
+# Ctrl+B, D 로 빠져나옴. 다시 보려면 tmux attach -t carla
+nvidia-smi                    # CarlaUE4 프로세스가 약 6 GB
 ```
+```bash
+# [A]  녹화 (carla_data/ 가 없을 때만, 1~2분)
+cd ~/carlamayo && source venv-sim/bin/activate && export CARLA_ROOT=~/carla
+python data_collect.py        # 1~2분 뒤 Ctrl+C → carla_data/
+ls carla_data | head           # 프레임 폴더가 보여야 함
+```
+
+### 6.3 [A] open-loop (원격 추론 경로 검증)
+
 ```bash
 # [A]
 python carlamayo.py --loop open --version 1.5 --data-root carla_data --inference-server <B IP>:50051 --run-tag port-check
@@ -411,10 +425,12 @@ tools/fetch_server_profile.sh $RUN && python tools/analyze_run.py runs/$RUN && s
 ```
 통과: `runs/<run_id>/carla_alpamayo_open_loop_result.mp4`와 `summary.md`가 생기고 headline에 `rtt_mean_s`, `inference_mean_s`가 있다.
 
-### 6.3 [A] closed-loop 1~2분
+### 6.4 [A] closed-loop 1~2분
+
+CARLA 서버(6.2)가 떠 있어야 한다.
 
 ```bash
-# [A]  DCV 터미널(또는 SSH면 --no-pygame-ui 추가)
+# [A]  DCV 세션 안의 터미널(또는 SSH면 --no-pygame-ui 추가)
 python carlamayo.py --loop closed --version 1.5 --inference-server <B IP>:50051 --run-tag port-check
 #   2분쯤 보고 Esc (영상은 Esc/Ctrl+C로 끝내야 저장)
 ls runs/$(ls -t runs | head -1)/*.mp4
@@ -433,7 +449,7 @@ ls runs/$(ls -t runs | head -1)/*.mp4
 | 1 | A·B 같은 커밋 | `git log -1 --oneline` 비교 | ☐ |
 | 2 | `deploy/hosts.env` 양쪽에 작성 | 파일 존재, IP 확인 | ☐ |
 | 3 | A 환경 | `verify-sim-host.sh` → `0 FAIL` | ☐ |
-| 4 | CARLA 기동 | `nvidia-smi`에 CarlaUE4, `get_server_version()` = 0.9.16 | ☐ |
+| 4 | CARLA 기동 (§6.2) | `nvidia-smi`에 CarlaUE4, `get_server_version()` = 0.9.16 | ☐ |
 | 5 | B 환경 + HF 게이트 | `verify-inference-host.sh` → `0 FAIL` | ☐ |
 | 6 | A→B 네트워크·SSH·gRPC | `verify-sim-host.sh --link` (fake 서버) → `0 FAIL` | ☐ |
 | 7 | 실제 서버 SERVING | `verify-inference-host.sh --serving` | ☐ |
