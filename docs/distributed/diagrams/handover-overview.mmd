@@ -1,0 +1,24 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Noto Sans CJK KR, sans-serif", "fontSize": "15px", "primaryColor": "#ffffff", "primaryBorderColor": "#1B2A41", "lineColor": "#1B2A41", "clusterBkg": "#f4f6fa", "clusterBorder": "#1B2A41"}, "flowchart": {"nodeSpacing": 50, "rankSpacing": 70, "wrappingWidth": 320, "curve": "linear"}}}%%
+flowchart LR
+  OP["운영자 PC<br/>SSH 터미널 · 브라우저(DCV)"]
+  subgraph A["A 시뮬레이터 인스턴스 (g5.2xlarge, A10G 24 GB)"]
+    direction LR
+    CARLA["CARLA 시뮬레이터<br/>CarlaUE4.sh (화면 없이 실행)"]
+    CLI["인터페이스 carlamayo.py<br/>카메라 4장 수집 → B에 요청<br/>받은 궤적 → 조향·가속·제동<br/>pygame 창 (DCV로 봄)"]
+    CARLA -- "카메라 영상 · 차량 상태" --> CLI
+    CLI -- "제어 명령" --> CARLA
+  end
+  subgraph B["B 추론 인스턴스 (g6e.xlarge, L40S 48 GB)"]
+    direction LR
+    SRV["추론 서버 alpamayo_server.py<br/>gRPC :50051 · 모델 1회 로드"]
+    MODEL["Alpamayo 1.5 모델<br/>GPU 상주 (약 22 GB)"]
+    SRV <-- "이미지 · 지시 · 질문 / 궤적 · 답변" --> MODEL
+  end
+  CLI <== "① 요청: JPEG 4장 × 4프레임, 5~8 MB, 1초에 한 번<br/>② 응답: 궤적 64점, 10 KB 미만" ==> SRV
+  OP -. "DCV 8443: pygame 창" .-> A
+  OP -. "SSH 22" .-> B
+  style OP fill:#fff7e6,stroke:#E0762B,stroke-width:2px
+  style CARLA fill:#e8f0fc,stroke:#2A6FDB,stroke-width:2px
+  style CLI fill:#e8f0fc,stroke:#2A6FDB,stroke-width:2px
+  style SRV fill:#fdeee3,stroke:#E0762B,stroke-width:2px
+  style MODEL fill:#fdeee3,stroke:#E0762B,stroke-width:2px

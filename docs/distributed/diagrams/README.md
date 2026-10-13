@@ -15,6 +15,12 @@ GitHub에서 문서를 열면 같은 그림이 바로 보인다. SVG는 Mermaid�
 | `seq-navigation-cfg-prompt.svg` | §4.5 | navigation 모드에서 키보드로 "텍스트 \| 가중치"를 넣었을 때 어댑터가 CFG 샘플러를 고르기까지의 경로 | 가중치가 1.0이 아니면 CFG 경로, 1.0이면 일반 조건부 경로 |
 | `seq-vqa.svg` | §4.6 | VQA 모드에서 궤적 추론 없이 질문·답변만 오가고 차량은 정지하는 흐름 | `loop` 안에 `apply_control(0,0,1.0)`(정지)이 매 tick 있음 |
 
+## 사용 설명서 (`user-guide.md`)
+
+| 파일 | 출처 | 보여주는 것 | 읽는 법 |
+|---|---|---|---|
+| `handover-overview.svg` (`.png`, 소스 `.mmd`) | §2 | 받는 사람용 한 장 그림. A(CARLA 시뮬레이터 → 인터페이스 `carlamayo.py`)와 B(추론 서버 → Alpamayo 1.5 모델), 그 사이 ① 요청/② 응답, 운영자 PC의 DCV·SSH 접속 | 요소 5개만 둔 개요도. 상세는 `split-deployment.svg`·`stack-deployment.svg`. PNG는 콜랩 페이지 첨부용 |
+
 ## 분리 후 구조 (`distributed-architecture.md`)
 
 | 파일 | 출처 | 보여주는 것 | 읽는 법 |

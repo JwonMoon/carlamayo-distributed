@@ -24,10 +24,13 @@
 분석·설계·운영 문서(한국어)는 `docs/distributed/` 아래에 있다. `docs/` 바로 아래의 영어 문서는
 업스트림 원본이다(일부는 두 호스트 구성에 맞게 손봤고, 그 내역은 변경 기록에 있다).
 
+> **구성된 인스턴스를 받아 데모를 돌리려는 분은 [docs/distributed/user-guide.md](docs/distributed/user-guide.md)부터 읽는다.**
+> 개요·환경 그림·처음 한 번 할 일·매번 돌리는 순서와 단계별 확인 방법이 한 문서에 있다.
+
 | 문서 | 내용 |
 |---|---|
 | [docs/distributed/porting-guide.md](docs/distributed/porting-guide.md) | **새 인스턴스 두 대에 처음부터 구성하는 매뉴얼**: 사양·AMI·보안그룹·설치·검증 스크립트·완료 체크리스트 |
-| [docs/distributed/handover-page.md](docs/distributed/handover-page.md) | 구성된 인스턴스를 다른 팀에 넘길 때 콜랩 페이지에 붙이는 한 장: 받은 것, 처음 한 번, 매번 실행 순서와 확인, 모드 전환, 종료, 자주 막히는 것 (`<...>` 칸 채워서 사용) |
+| [docs/distributed/user-guide.md](docs/distributed/user-guide.md) | **환경을 받은 사람의 사용 설명서**: 개요·출처, 환경 그림, 처음 한 번, 매번 실행 순서(DCV 접속 포함)와 단계별 확인, 모드 전환, 자주 막히는 것 |
 | [docs/distributed/architecture-analysis.md](docs/distributed/architecture-analysis.md) | 현재(단일 호스트) 구조 분석: 배포·모듈 의존·시퀀스·데이터 크기·타이밍·UI |
 | [docs/distributed/distributed-architecture.md](docs/distributed/distributed-architecture.md) | 분리 후 구조, 인스턴스 간 데이터 교환 명세, 전/후 비교, RPC 계약 초안, 리스크 |
 | [docs/distributed/adr/](docs/distributed/adr/README.md) | 설계 결정 기록: 왜 이렇게 골랐고 다른 후보는 왜 아닌지 |
