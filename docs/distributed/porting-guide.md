@@ -33,7 +33,16 @@ CARLA 바이너리 다운로드가 대부분). 각 절 끝의 **확인** 명령�
 | AMI | 드라이버 | 할 일 |
 |---|---|---|
 | **AWS Deep Learning Base GPU AMI (Ubuntu 22.04 또는 24.04)** (권장) | 들어 있음 | §2.5 건너뜀 |
-| 일반 **Ubuntu 22.04 / 24.04** AMI (생 인스턴스) | 없음. `nvidia-smi: command not found` | **§2.5에서 드라이버를 먼저 깐다.** 드라이버 없이는 CARLA(Vulkan)도 DCV 가상 세션도 안 뜬다 |
+| 일반 **Ubuntu** AMI (생 인스턴스) | 없음. `nvidia-smi: command not found` | **§2.5에서 드라이버를 먼저 깐다.** 드라이버 없이는 CARLA(Vulkan)가 안 뜬다 |
+
+A에서 pygame 창을 DCV로 볼 계획이면 **Ubuntu 버전이 DCV 세션 방식을 결정**한다(§1.4). 이전 환경은 22.04 + 콘솔 세션이었고,
+2026-10 포팅 환경은 26.04라 가상 세션만 가능했다.
+
+| Ubuntu | GNOME | 콘솔 세션 (GNOME 화면, `DISPLAY=:0`) | 가상 세션 (XFCE) |
+|---|---|---|---|
+| 22.04 LTS | 42 | 가능 (이전 환경) | 가능 |
+| 24.04 LTS | 46 | 가능 | 가능 |
+| **26.04 LTS** | **50** | **불가.** GNOME 50은 X11 세션을 지원하지 않아 `WaylandEnable=false`를 줘도 Wayland로만 뜨고 DCV가 중계하지 못한다 | 가능 (현재 환경, §1.4 방식 B) |
 
 B에서 flash-attn을 빌드하려면 CUDA Toolkit(`nvcc`)이 있어야 하지만, 없으면 자동으로 SDPA 폴백을 쓴다(느릴 뿐 동작).
 
@@ -91,53 +100,101 @@ EOF
 ssh <B 사설 IP> hostname      # B의 호스트명이 나오면 통과
 ```
 
-### 1.4 NICE DCV (A, 선택) — 가상 세션
+### 1.4 NICE DCV (A, 선택)
 
-pygame 창을 보려면 A에 DCV 서버를 설치하고 **가상 세션**을 만든다. DCV 없이도 open-loop·closed-loop(`--no-pygame-ui`)·측정은
+pygame 창을 보려면 A에 DCV 서버를 설치하고 세션을 만든다. DCV 없이도 open-loop·closed-loop(`--no-pygame-ui`)·측정은
 전부 가능하고, 영상은 `runs/<run_id>/*.mp4`로 남으므로 scp로 받아 보면 된다.
 
-**전제 두 가지**
-- NVIDIA 드라이버(§2.5). DCV 가상 세션 자체는 GPU 없이도 뜨지만 CARLA가 드라이버를 요구하므로 어차피 먼저 깐다.
-- **데스크톱 환경.** 서버 AMI에는 없고, 없으면 세션이 만들어져도 화면이 무한 로딩이다. 아래 1)에서 깐다.
+세션 방식은 둘이다. **Ubuntu 버전에 따라 고른다**(§0.2 표). 공통 설치(1.4.1)를 한 뒤 방식 A 또는 B 중 하나만 한다.
 
-**설치 순서 (Ubuntu 22.04 / 24.04, 약 15분)**
+| | 방식 A: 콘솔 세션 | 방식 B: 가상 세션 |
+|---|---|---|
+| X 서버 | 부팅 때 gdm이 GPU 위에 띄운 Xorg `:0`을 DCV가 중계 | DCV가 세션마다 자체 X 서버(`Xdcv`)를 띄움 |
+| 화면 | 우분투 GNOME 바탕화면 (이전 환경과 같음) | XFCE 바탕화면 |
+| 필요한 것 | `ubuntu-desktop-minimal`, `gdm3`, Wayland 끄기, `nvidia-xconfig`, `graphical.target` | `xfce4`, `nice-xdcv`, `/etc/dcv/dcvsessioninit`, `multi-user.target` |
+| 되는 OS | 22.04, 24.04 | 22.04, 24.04, **26.04** |
+| `DISPLAY` | `:0` | `:0` (gdm을 꺼 두면 첫 가상 세션이 `:0`을 받음) |
+
+#### 1.4.1 공통: DCV 패키지와 계정 (두 방식 모두)
+
+전제: NVIDIA 드라이버(§2.5). 보안그룹 8443(§1.2).
 
 ```bash
-# [A]  1) 데스크톱 환경 (가상 세션이 띄울 GNOME)
-sudo apt-get update && sudo apt-get install -y ubuntu-desktop-minimal
-
-# 2) DCV 패키지: AWS "NICE DCV 다운로드" 페이지에서 자기 Ubuntu 버전(2204 또는 2404) x86_64 tgz 주소를 복사해 넣는다
+# [A]  DCV 패키지: AWS "NICE DCV 다운로드" 페이지에서 Ubuntu 버전(2204 또는 2404) x86_64 tgz 주소를 복사해 넣는다.
+#      26.04용 패키지는 없으며 2404 패키지가 26.04에서 설치·동작한다(2026-10 확인).
 cd /tmp && wget https://d1uj6qtbmh3dt5.cloudfront.net/NICE-GPG-KEY && gpg --import NICE-GPG-KEY
 wget <nice-dcv-<버전>-ubuntu<2204|2404>-x86_64.tgz 주소> && tar xzf nice-dcv-*-ubuntu*-x86_64.tgz && cd nice-dcv-*-x86_64
 sudo apt-get install -y ./nice-dcv-server_*.deb ./nice-xdcv_*.deb ./nice-dcv-gl_*.deb ./nice-dcv-web-viewer_*.deb
-#   nice-xdcv = 가상 세션용 X 서버(필수), nice-dcv-gl = 세션 안 GL 가속(선택, pygame에는 불필요)
-
-# 3) 설정
+#   nice-xdcv = 가상 세션용 X 서버(방식 B 필수), nice-dcv-gl = 세션 안 GL 가속(선택, pygame에는 불필요)
+#   마지막의 "N: Download is performed unsandboxed ..." 는 안내일 뿐 오류가 아니다.
 sudo usermod -aG video dcv
-sudo systemctl set-default multi-user.target     # gdm(로그인 화면)은 가상 세션에 필요 없으므로 부팅 때 띄우지 않는다
 sudo systemctl enable --now dcvserver
-sudo passwd ubuntu                               # DCV 로그인에 쓸 비밀번호
-
-# 4) 가상 세션
-sudo dcv create-session --type virtual --owner ubuntu demo
-dcv list-sessions                                # Session: 'demo' (owner:ubuntu type:virtual)
+sudo passwd ubuntu                               # DCV 로그인에 쓸 비밀번호 ("BAD PASSWORD" 경고가 떠도 적용됨)
 ```
 
-브라우저 또는 DCV 클라이언트로 `https://<A 공인 IP>:8443` 접속(보안그룹 8443은 §1.2), `ubuntu`로 로그인. 자체 서명 인증서라
-처음 한 번은 경고를 수락해야 한다.
+접속은 브라우저 또는 DCV 클라이언트로 `https://<A 공인 IP>:8443`, `ubuntu`로 로그인. 자체 서명 인증서라 처음 한 번은 경고를 수락해야 한다.
+**인스턴스를 stop/start 하면 세션이 사라진다.** 접속 전에 `start_dcv` alias(각 방식 끝에 있음)를 한 번 친다.
 
-**인스턴스를 stop/start 하면 가상 세션이 사라진다.** 접속 전에 한 번 치도록 `~/.bashrc`에 alias를 둔다.
+#### 1.4.2 방식 A: 콘솔 세션 (Ubuntu 22.04 / 24.04, GNOME 화면)
 
 ```bash
-alias start_dcv='sudo systemctl start dcvserver && (dcv list-sessions | grep -q demo || sudo dcv create-session --type virtual --owner ubuntu demo) && dcv list-sessions'
+# [A]  1) GNOME 데스크톱 + 로그인 관리자
+sudo apt-get update && sudo apt-get install -y ubuntu-desktop-minimal gdm3
+# 2) DCV는 Xorg만 중계하므로 Wayland를 끈다. [daemon] 아래에 WaylandEnable=false 가 있어야 한다
+sudo sed -i 's/^#\?WaylandEnable=.*/WaylandEnable=false/' /etc/gdm3/custom.conf
+grep -n WaylandEnable /etc/gdm3/custom.conf      # 없으면 [daemon] 아래에 직접 한 줄 추가
+# 3) 모니터 없는 NVIDIA GPU 위에서 Xorg가 뜨게
+sudo nvidia-xconfig --preserve-busid --enable-all-gpus
+# 4) 부팅 때 gdm이 뜨게 하고 재부팅
+sudo systemctl set-default graphical.target && sudo systemctl enable gdm
+sudo reboot
+```
+```bash
+# 재접속 후
+ps aux | grep -c '[X]org'                        # 1 이상이어야 함. 0이면 journalctl -u gdm -n 30 확인
+sudo dcv create-session --type console --owner ubuntu simulator-session
+dcv list-sessions                                # Session: 'simulator-session' (owner:ubuntu type:console)
+```
+```bash
+# ~/.bashrc
+alias start_dcv='sudo systemctl start dcvserver && (dcv list-sessions | grep -q simulator-session || sudo dcv create-session --type console --owner ubuntu simulator-session) && dcv list-sessions'
 ```
 
-**DISPLAY 번호.** 가상 세션의 디스플레이는 `:0`이 아니다. `carlamayo.py`는 DCV 세션 안의 터미널에서 실행하면 자동으로 맞고,
-SSH 터미널에서 띄워야 하면 `dcv describe-session demo | grep -i display`에 나온 값(예: `:1`)을 `export DISPLAY=:1`로 준다.
+journal에 `New session ... type 'wayland'` 나 `Running GNOME Shell ... as a Wayland display server` 가 찍히면 그 OS의 GNOME은 X11을
+지원하지 않는 것이다(26.04). 이 경우 콘솔 세션은 불가능하니 방식 B로 간다.
 
-콘솔 세션(`--type console`)은 부팅 때 gdm이 GPU 위에 띄운 Xorg `:0`을 중계하는 방식이라 gdm3, Wayland 끄기, `nvidia-xconfig`가
-더 필요하고 헤드리스 EC2에서 Xorg가 안 뜨면 추적이 번거롭다. 이 가이드는 가상 세션만 다룬다. 콘솔 세션이 남아 있으면
-`sudo dcv close-session <이름>`으로 닫고 가상 세션을 만든다. 접속이 Connecting이나 로딩에서 멈추면 §8.
+#### 1.4.3 방식 B: 가상 세션 (Ubuntu 26.04, 또는 콘솔 세션이 안 될 때)
+
+GNOME은 Xdcv 위에서 뜨지 않으므로(26.04에서는 1초 만에 종료) 데스크톱은 **XFCE**를 쓴다.
+
+```bash
+# [A]  1) XFCE. 설치 중 "Configuring lightdm: gdm3 / lightdm" 선택 화면이 뜨면 아무거나 Ok (어차피 켜지 않는다)
+sudo apt-get update && sudo apt-get install -y xfce4 xfce4-terminal
+sudo systemctl disable --now lightdm 2>/dev/null; sudo systemctl disable --now gdm 2>/dev/null
+sudo systemctl set-default multi-user.target     # 로그인 화면(gdm/lightdm)은 가상 세션에 필요 없고 GPU 메모리만 쓴다
+# 2) 가상 세션이 띄울 데스크톱 지정
+printf '#!/bin/sh\nexec startxfce4\n' | sudo tee /etc/dcv/dcvsessioninit
+sudo chmod +x /etc/dcv/dcvsessioninit
+# 3) 가상 세션
+sudo dcv create-session --type virtual --owner ubuntu simulator-session
+dcv list-sessions                                # Session: 'simulator-session' (owner:ubuntu type:virtual) 가 남아 있어야 함
+```
+```bash
+# ~/.bashrc
+alias start_dcv='sudo systemctl start dcvserver && (dcv list-sessions | grep -q simulator-session || sudo dcv create-session --type virtual --owner ubuntu simulator-session) && dcv list-sessions'
+```
+
+세션이 `list-sessions`에서 바로 사라지면 데스크톱 시작이 실패한 것이다. `sudo tail -n 30 /var/log/dcv/dcv-xsession.ubuntu.simulator-session.log`에
+`Init script exited normally`가 1초 안에 찍히면 그 경우이고, `dcvsessioninit`이 없거나(기본값 `/etc/X11/Xsession` → GNOME) XFCE가 안 깔린 것이다.
+
+XFCE 바탕화면에서 터미널은 상단 패널의 터미널 아이콘 또는 바탕화면 오른쪽 클릭 → Applications → Terminal Emulator.
+CARLA 서버·B 서버는 지금까지처럼 SSH 터미널(`tmux`)에서 켜고, pygame 창이 필요한 `carlamayo.py`만 이 터미널에서 실행한다.
+
+#### DISPLAY 번호
+
+두 방식 모두 보통 `:0`이다(콘솔은 항상, 가상은 gdm을 꺼 둔 경우). `carlamayo.py`는 DCV 세션 안의 터미널에서 실행하면 자동으로 맞고,
+SSH 터미널에서 띄우려면 `export DISPLAY=:0`. 다르면 `dcv describe-session simulator-session | grep -i display`로 확인한다.
+접속이 Connecting이나 로딩에서 멈추면 §8.
 
 ---
 
@@ -375,7 +432,11 @@ ls runs/$(ls -t runs | head -1)/*.mp4
 | `carla` 휠 설치 실패 | PyPI에 해당 Python 휠 없음 | `pip install ~/carla/PythonAPI/carla/dist/carla-0.9.16-*.whl` |
 | `agents.navigation.controller` 없음 | `CARLA_ROOT` 미설정 | `export CARLA_ROOT=~/carla` (bashrc 확인) |
 | `nvidia-smi: command not found` | 일반 Ubuntu AMI라 드라이버 없음 | §2.5 |
-| DCV 웹 접속이 Connecting·로딩에서 멈춤 | ⓪ **데스크톱 환경 없음 또는 세션이 `console` 타입**(서버 AMI에서 가장 흔함) ① 드라이버 없음 ② stop/start 뒤 세션 소멸 ③ dcvserver 중지 ④ 공인 IP 변경·8443 미개방 ⑤ 브라우저가 자체 서명 인증서 거부 | ⓪ `dpkg -l \| grep ubuntu-desktop` 비면 §1.4 1)부터, `dcv list-sessions`에 `type:console`이면 close-session 후 가상 세션 ① `nvidia-smi` → §2.5 ② `dcv list-sessions` 비면 `sudo dcv create-session --type virtual --owner ubuntu demo` ③ `sudo systemctl restart dcvserver` ④ 로컬에서 `nc -zv <A 공인 IP> 8443`, §1.2 ⑤ 주소를 직접 열어 경고 수락하거나 네이티브 DCV 클라이언트. 로그 `/var/log/dcv/server.log` |
+| DCV 웹 접속이 Connecting·로딩에서 멈춤 (로그인 창도 안 나옴) | 8443 미개방·공인 IP 변경, dcvserver 중지, 브라우저가 자체 서명 인증서 거부 | 로컬에서 `nc -zv <A 공인 IP> 8443`(§1.2); `sudo systemctl restart dcvserver`; 주소를 직접 열어 경고 수락하거나 네이티브 DCV 클라이언트 |
+| 로그인은 되는데 화면이 계속 로딩 | 세션 없음(stop/start 뒤), 데스크톱 환경 없음, 세션 방식이 OS와 안 맞음 | `dcv list-sessions` 비면 `start_dcv`; `dpkg -l \| grep -E 'ubuntu-desktop\|xfce4'` 비면 §1.4.2/§1.4.3의 1); 26.04에서 `type:console`이면 close-session 후 방식 B |
+| journal에 `type 'wayland'`, `Running GNOME Shell ... as a Wayland display server` (콘솔 세션, `WaylandEnable=false`인데도) | 그 OS의 GNOME(50, 26.04)이 X11 미지원. 콘솔 세션 불가 | 방식 B(§1.4.3)로. 또는 A를 22.04/24.04 AMI로 다시 만든다 |
+| 가상 세션이 만들어진 직후 사라짐 (`create-session` 뒤 `list-sessions` 비어 있음) | 세션 안 데스크톱이 바로 종료. `dcv-xsession.*.log`에 `Init script exited normally` | XFCE 설치 + `/etc/dcv/dcvsessioninit`에 `exec startxfce4`(§1.4.3). GNOME은 Xdcv 위에서 안 뜬다 |
+| `nvidia-smi: command not found` 인데 DCV만 문제 | 드라이버는 CARLA용. DCV 가상 세션은 드라이버 없이도 뜸 | 원인을 DCV 쪽(위 행들)에서 찾는다. 드라이버는 §2.5에서 어차피 깐다 |
 | CARLA가 바로 죽음 | Vulkan 없음 / GPU 드라이버 | `sudo apt-get install -y libvulkan1`, `nvidia-smi` 확인 |
 | B `uv sync`에서 flash-attn 빌드 실패 | `nvcc` 없음 | 스크립트가 자동으로 제외. 느리지만 동작 |
 | 모델 다운로드 401/403 | 게이트 미승인 또는 토큰 없음 | 모델 페이지에서 접근 요청, `hf auth login` |

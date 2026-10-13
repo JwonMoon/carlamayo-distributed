@@ -121,7 +121,7 @@ sed -n 1,30p runs/$RUN/summary.md
 ## 4. [A] closed-loop (normal, 동기 모드) — 주행 시연
 
 ```bash
-# [A]  (DCV 세션 안의 터미널. SSH 터미널이면 먼저 export DISPLAY=<dcv describe-session demo 의 display 값>)
+# [A]  (DCV 세션 안의 터미널. SSH 터미널이면 먼저 export DISPLAY=:0)
 python carlamayo.py --loop closed --version 1.5 --inference-server 172.31.20.213:50051 --run-tag sync
 ```
 
@@ -276,9 +276,9 @@ scp -r ubuntu@<B>:~/carlamayo/runs/<run_id> ./results/     # B 로컬 open-loop 
 | `DEADLINE_EXCEEDED` | 추론이 120 s를 넘김(샘플 수·CFG 과다) 또는 서버 멈춤 | `--rpc-timeout-sec` 조정, B 로그 확인 |
 | 서버 재시작 중 클라이언트가 오류 출력 | B를 재시작하는 동안 요청 실패 | 다음 요청에서 자동 재접속. 궤적 나이 6 s 초과 시 정지(안전장치) |
 | gRPC 스텁 오류(`module/remote/*_pb2*`) | proto와 생성 코드 불일치 | 양쪽 `tools/gen_proto.sh` 후 커밋(CI가 검사) |
-| pygame 창이 안 뜸 | DCV 세션 밖(SSH)에서 실행 | DCV 세션 안의 터미널에서 실행. SSH 터미널이면 `dcv describe-session demo`의 display 값으로 `export DISPLAY=<값>`(가상 세션은 `:0`이 아님), 또는 `--no-pygame-ui` |
+| pygame 창이 안 뜸 | DCV 세션 밖(SSH)에서 실행 | DCV 세션 안의 터미널에서 실행하거나 `export DISPLAY=:0`(콘솔·가상 모두 보통 `:0`. 다르면 `dcv describe-session <세션>`), 또는 `--no-pygame-ui` |
 | `agents.navigation.controller` 없음 | `CARLA_ROOT` 미설정 | `export CARLA_ROOT=~/carla` |
-| DCV 웹 접속이 Connecting·로딩에서 멈춤 | 데스크톱 환경 없음 또는 `console` 세션(새 인스턴스), stop/start 뒤 가상 세션 소멸, dcvserver 중지, 8443·공인 IP, 인증서 경고 미수락 | [A] 새 인스턴스면 [porting-guide.md](porting-guide.md) §1.4 절차(데스크톱 + 가상 세션). `dcv list-sessions` 비면 `sudo dcv create-session --type virtual --owner ubuntu demo`; `sudo systemctl restart dcvserver`; `nvidia-smi` 확인; 주소를 직접 열어 인증서 경고 수락 또는 네이티브 클라이언트. 상세는 [porting-guide.md](porting-guide.md) §1.4·§8 |
+| DCV 웹 접속이 Connecting·로딩에서 멈춤 | 세션 없음(stop/start 뒤), 데스크톱 환경 없음, OS에 안 맞는 세션 방식(26.04는 가상 세션만), dcvserver 중지, 8443·공인 IP, 인증서 경고 미수락 | [A] `start_dcv`(세션 재생성); `sudo systemctl restart dcvserver`; 주소를 직접 열어 인증서 경고 수락 또는 네이티브 클라이언트. 방식별 절차와 원인 표는 [porting-guide.md](porting-guide.md) §1.4·§8 |
 | 영상이 없음 | 종료를 강제로 함(창 닫기·kill·세션 끊김) | `Esc` 또는 Ctrl+C로 종료. 폴더는 `runs/<run_id>/` |
 | 주행이 흔들리고 늦게 반응 | 비동기 모드의 궤적 나이, 또는 지워지지 않은 navigation 지시 | 동기 모드로 / 지시 해제(`| 1.0` Enter) |
 | 차가 안 움직임 | navigation/vqa 모드에서 정지 시작, 또는 궤적 나이 6 s 초과 안전장치 | `Ctrl+P`로 출발 / B 서버·네트워크 확인 |
@@ -391,7 +391,7 @@ python tools/compare_predictions.py runs/<run_local> runs/<run_remote_jpeg> --at
 
 ## R5. closed-loop·live-open 옵션
 
-DCV 세션 안의 터미널에서 실행한다. SSH 터미널이면 `dcv describe-session demo`의 display 값으로 `export DISPLAY=<값>`(가상 세션은 `:0`이 아님).
+DCV 세션 안의 터미널에서 실행한다. SSH 터미널에서 실행하려면 먼저 `export DISPLAY=:0`(콘솔·가상 세션 모두 보통 `:0`. 다르면 `dcv describe-session <세션>`으로 확인).
 pygame 창은 기본으로 켜진다(`--no-pygame-ui`로 끔). 기본 명령은 **동기 모드**(1부 4단계)다.
 
 ```bash

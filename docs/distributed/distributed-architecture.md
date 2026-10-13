@@ -293,7 +293,7 @@ NICE DCV가 A에 이미 설정되어 있으므로 그것을 쓴다.
 1. DCV 클라이언트로 A에 접속해 가상 데스크톱을 연다.
 2. 그 데스크톱의 터미널에서 `carlamayo.py`를 실행한다. pygame이 DCV의 X 디스플레이에 창을
    만든다.
-3. SSH 세션에서 실행해야 한다면 DCV 가상 세션의 디스플레이 번호(`dcv describe-session <세션>`의 display 값, `:0`이 아님)를 `DISPLAY`로 지정한다.
+3. SSH 세션에서 실행해야 한다면 DCV 세션의 디스플레이 번호를 `DISPLAY`로 지정한다(콘솔·가상 모두 보통 `:0`. `dcv describe-session <세션>`으로 확인).
 
 대안은 두 가지가 있으나 권장하지 않는다. SSH X11 forwarding은 1280×900 화면을 10 Hz로
 넘기기엔 느리고, 브라우저 MJPEG 뷰어는 코드를 새로 짜야 한다(필요해지면 로드맵에 추가).

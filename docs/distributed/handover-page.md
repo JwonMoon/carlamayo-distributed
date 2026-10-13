@@ -44,7 +44,7 @@
 | 공인 IP / DNS | `<...>` | `<...>` |
 | SSH 사용자 | `<ubuntu 또는 ec2-user>` | `<ubuntu 또는 ec2-user>` |
 | 키페어 | `<이름>.pem` (보관자: `<이름>`) | 같은 pem |
-| 화면 접속 | NICE DCV `https://<A 공인 IP>:8443`, 계정 `<...>` | 없음 (SSH만) |
+| 화면 접속 | NICE DCV `https://<A 공인 IP>:8443`, 계정 `<...>`, 세션 `<이름>` (`<콘솔 / 가상(XFCE)>` 방식. Ubuntu `<버전>`) | 없음 (SSH만) |
 | 보안그룹 | `<sg-...>` | `<sg-...>` (A에서 TCP 22·50051 인바운드 허용됨) |
 
 아래 명령의 `[A]`/`[B]`는 어느 인스턴스 터미널에서 치는지다. A의 pygame 창이 필요한 명령은 **DCV 세션 안의 터미널**에서 친다.
@@ -130,8 +130,8 @@ scp -i <pem> -r <user>@<A 공인 IP>:~/carlamayo/runs/<run_id> ./results/
 | `server is not warmed up` | 모델 로드·워밍업 중. B 로그에 `SERVING`이 뜰 때까지 기다림(첫 실행은 가중치 22 GB 다운로드로 수십 분) |
 | B 로그에 `401`/`403` | HF 게이트 미승인 또는 다른 계정. §2 2~3번 |
 | `serves Alpamayo '2' but --version '1.5'` / `NUM_FRAMES: client != server` | A·B의 `--version` 또는 커밋 불일치. 둘 다 `git pull` 후 맞춤 |
-| pygame 창이 안 뜸 | SSH 터미널에서 실행함. DCV 세션 안의 터미널에서 치거나, SSH 터미널이면 `dcv describe-session demo`의 display 값으로 `export DISPLAY=<값>`. 창 없이 보려면 `--no-pygame-ui` |
-| DCV 웹 접속이 Connecting·로딩에서 멈춤 | [A] 세션이 없거나(`dcv list-sessions`, stop/start 뒤 흔함) `type:console`이면 `sudo dcv create-session --type virtual --owner ubuntu demo`. 그래도 안 되면 `nvidia-smi`·`sudo systemctl status dcvserver`·보안그룹 8443 확인, 주소를 직접 열어 인증서 경고 수락 또는 네이티브 DCV 클라이언트 |
+| pygame 창이 안 뜸 | SSH 터미널에서 실행함. DCV 세션 안의 터미널에서 치거나 `export DISPLAY=:0`(다르면 `dcv describe-session <세션>`). 창 없이 보려면 `--no-pygame-ui` |
+| DCV 웹 접속이 Connecting·로딩에서 멈춤 | [A] `dcv list-sessions`가 비면(stop/start 뒤 흔함) `start_dcv`. 그래도 안 되면 `sudo systemctl status dcvserver`·보안그룹 8443 확인, 주소를 직접 열어 인증서 경고 수락 또는 네이티브 DCV 클라이언트. 세션 방식(콘솔/가상)은 §1 표 참조 |
 | 영상이 없음 | 강제 종료(창 닫기·kill). `Esc`/Ctrl+C로 끝낸다 |
 | 주행이 흔들리고 늦게 반응 | `--async`를 썼거나 navigation 지시가 남아 있음. 동기로 돌리고 `\| 1.0` Enter로 지시 해제 |
 
