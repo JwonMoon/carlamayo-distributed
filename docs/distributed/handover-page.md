@@ -131,6 +131,7 @@ scp -i <pem> -r <user>@<A 공인 IP>:~/carlamayo/runs/<run_id> ./results/
 | B 로그에 `401`/`403` | HF 게이트 미승인 또는 다른 계정. §2 2~3번 |
 | `serves Alpamayo '2' but --version '1.5'` / `NUM_FRAMES: client != server` | A·B의 `--version` 또는 커밋 불일치. 둘 다 `git pull` 후 맞춤 |
 | pygame 창이 안 뜸 | SSH 터미널에서 실행함. DCV 터미널에서 치거나 `export DISPLAY=:0`, 창 없이 보려면 `--no-pygame-ui` |
+| DCV 웹 접속이 Connecting에서 멈춤 | [A] `dcv list-sessions`가 비면(stop/start 뒤 흔함) `sudo dcv create-session --type virtual --owner ubuntu demo`. 그래도 안 되면 `nvidia-smi`·`sudo systemctl status dcvserver`·보안그룹 8443 확인, 주소를 직접 열어 인증서 경고 수락 또는 네이티브 DCV 클라이언트 |
 | 영상이 없음 | 강제 종료(창 닫기·kill). `Esc`/Ctrl+C로 끝낸다 |
 | 주행이 흔들리고 늦게 반응 | `--async`를 썼거나 navigation 지시가 남아 있음. 동기로 돌리고 `\| 1.0` Enter로 지시 해제 |
 

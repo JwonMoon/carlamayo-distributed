@@ -278,6 +278,7 @@ scp -r ubuntu@<B>:~/carlamayo/runs/<run_id> ./results/     # B 로컬 open-loop 
 | gRPC 스텁 오류(`module/remote/*_pb2*`) | proto와 생성 코드 불일치 | 양쪽 `tools/gen_proto.sh` 후 커밋(CI가 검사) |
 | pygame 창이 안 뜸 | DCV 세션 밖(SSH)에서 실행 | DCV 터미널에서 실행하거나 `export DISPLAY=:0`, 또는 `--no-pygame-ui` |
 | `agents.navigation.controller` 없음 | `CARLA_ROOT` 미설정 | `export CARLA_ROOT=~/carla` |
+| DCV 웹 접속이 Connecting에서 멈춤 | stop/start 뒤 가상 세션 소멸, dcvserver 중지, 드라이버 없음, 8443·공인 IP, 인증서 경고 미수락 | [A] `dcv list-sessions` 비면 `sudo dcv create-session --type virtual --owner ubuntu demo`; `sudo systemctl restart dcvserver`; `nvidia-smi` 확인; 주소를 직접 열어 인증서 경고 수락 또는 네이티브 클라이언트. 상세는 [porting-guide.md](porting-guide.md) §1.4·§8 |
 | 영상이 없음 | 종료를 강제로 함(창 닫기·kill·세션 끊김) | `Esc` 또는 Ctrl+C로 종료. 폴더는 `runs/<run_id>/` |
 | 주행이 흔들리고 늦게 반응 | 비동기 모드의 궤적 나이, 또는 지워지지 않은 navigation 지시 | 동기 모드로 / 지시 해제(`| 1.0` Enter) |
 | 차가 안 움직임 | navigation/vqa 모드에서 정지 시작, 또는 궤적 나이 6 s 초과 안전장치 | `Ctrl+P`로 출발 / B 서버·네트워크 확인 |
@@ -291,6 +292,7 @@ scp -r ubuntu@<B>:~/carlamayo/runs/<run_id> ./results/     # B 로컬 open-loop 
 | 서버 로그 | [B] | `tmux attach -t server` (직접 실행) 또는 `journalctl -u alpamayo-server -f` (systemd) |
 | GPU | [A]/[B] | `nvidia-smi` |
 | CARLA 응답 | [A] | `python -c "import carla; c=carla.Client('localhost',2000); c.set_timeout(5); print(c.get_server_version())"` |
+| DCV 세션 | [A] | `dcv list-sessions` (비어 있으면 `sudo dcv create-session --type virtual --owner ubuntu demo`) |
 | A·B 환경 전체 점검 | [A]/[B] | `deploy/scripts/verify-sim-host.sh --link` / `deploy/scripts/verify-inference-host.sh --serving` (PASS/FAIL 목록) |
 
 ---

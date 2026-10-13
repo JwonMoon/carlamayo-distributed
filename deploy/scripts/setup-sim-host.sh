@@ -4,6 +4,7 @@ set -euo pipefail
 REPO="${REPO:-$HOME/carlamayo}"
 CARLA_DIR="${CARLA_ROOT:-$HOME/carla}"
 
+command -v nvidia-smi >/dev/null 2>&1 || echo "WARN: nvidia-smi not found; install the NVIDIA driver first (docs/distributed/porting-guide.md section 2.5)"
 sudo apt-get update
 sudo apt-get install -y python3.10 python3.10-venv ffmpeg libvulkan1 rsync netcat-openbsd
 

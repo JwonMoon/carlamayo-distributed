@@ -28,8 +28,13 @@ CARLA 바이너리 다운로드가 대부분). 각 절 끝의 **확인** 명령�
 
 ### 0.2 AMI
 
-NVIDIA 드라이버가 들어 있는 이미지를 고른다. 두 대 모두 **AWS Deep Learning Base GPU AMI (Ubuntu 22.04)** 가
-가장 간단하다. 직접 설치하는 경우 Ubuntu 22.04 + `nvidia-driver-5xx`. 확인: `nvidia-smi`가 GPU를 보여줘야 한다.
+두 가지 중 하나다. 어느 쪽이든 `nvidia-smi`가 GPU를 보여줘야 다음 단계로 간다.
+
+| AMI | 드라이버 | 할 일 |
+|---|---|---|
+| **AWS Deep Learning Base GPU AMI (Ubuntu 22.04)** (권장) | 들어 있음 | §2.5 건너뜀 |
+| 일반 **Ubuntu 22.04** AMI (생 인스턴스) | 없음. `nvidia-smi: command not found` | **§2.5에서 드라이버를 먼저 깐다.** 드라이버 없이는 CARLA(Vulkan)도 DCV 가상 세션도 안 뜬다 |
+
 B에서 flash-attn을 빌드하려면 CUDA Toolkit(`nvcc`)이 있어야 하지만, 없으면 자동으로 SDPA 폴백을 쓴다(느릴 뿐 동작).
 
 ### 0.3 계정·권한
@@ -88,9 +93,27 @@ ssh <B 사설 IP> hostname      # B의 호스트명이 나오면 통과
 
 ### 1.4 NICE DCV (A, 선택)
 
-pygame 창을 보려면 A에 DCV 서버를 설치하고 가상 세션을 만든다(AWS 문서 "NICE DCV 설치 – Ubuntu" 절차 그대로).
-DCV 클라이언트로 `https://<A 공인 IP>:8443` 접속. DCV 없이도 open-loop·closed-loop(`--no-pygame-ui`)·측정은 전부 가능하고,
-영상은 `runs/<run_id>/*.mp4`로 남으므로 scp로 받아 보면 된다.
+pygame 창을 보려면 A에 DCV 서버를 설치하고 가상 세션을 만든다. DCV 없이도 open-loop·closed-loop(`--no-pygame-ui`)·측정은
+전부 가능하고, 영상은 `runs/<run_id>/*.mp4`로 남으므로 scp로 받아 보면 된다.
+
+**설치 순서 (Ubuntu 22.04, 드라이버가 먼저 깔려 있어야 한다 → §2.5)**
+
+```bash
+# [A]  1) 패키지: AWS "NICE DCV 다운로드" 페이지에서 Ubuntu 22.04 x86_64 tgz 주소를 복사해 넣는다
+cd /tmp && wget https://d1uj6qtbmh3dt5.cloudfront.net/NICE-GPG-KEY && gpg --import NICE-GPG-KEY
+wget <nice-dcv-<버전>-ubuntu2204-x86_64.tgz 주소> && tar xzf nice-dcv-*-ubuntu2204-x86_64.tgz && cd nice-dcv-*-x86_64
+sudo apt-get install -y ./nice-dcv-server_*.deb ./nice-xdcv_*.deb ./nice-dcv-gl_*.deb ./nice-dcv-web-viewer_*.deb
+sudo usermod -aG video dcv
+# 2) 서버 켜기, 로그인 비밀번호, 가상 세션
+sudo systemctl enable --now dcvserver
+sudo passwd ubuntu                                            # DCV 로그인에 쓸 비밀번호
+sudo dcv create-session --type virtual --owner ubuntu demo
+dcv list-sessions                                             # demo 세션이 보여야 한다
+```
+
+브라우저 또는 DCV 클라이언트로 `https://<A 공인 IP>:8443` 접속(보안그룹 8443은 §1.2). 자체 서명 인증서라
+처음 한 번은 경고를 수락해야 한다. **인스턴스를 stop/start 하면 가상 세션이 사라진다.** 접속 전에
+`dcv list-sessions`로 확인하고 없으면 `create-session`을 다시 친다. 접속이 Connecting에서 멈추면 §8.
 
 ---
 
@@ -112,6 +135,32 @@ nano deploy/hosts.env                          # SIM_HOST_IP, INFERENCE_HOST_IP,
 `alpamayo_server.py --host`는 명령줄에 IP를 직접 쓴다.
 
 > 두 인스턴스의 **커밋이 같아야** 한다. 다르면 핸드셰이크에서 `NUM_FRAMES: client 4 != server …` 같은 오류로 시작을 거부한다.
+
+### 2.5 NVIDIA 드라이버 (두 대 공통, 생 Ubuntu AMI일 때)
+
+`nvidia-smi`가 이미 GPU를 보여주면 이 절은 건너뛴다. 아니면 **A·B 모두** 아래를 한다(약 10분 + 재부팅).
+
+```bash
+# [A], [B]
+sudo apt-get update && sudo apt-get install -y ubuntu-drivers-common
+ubuntu-drivers devices                        # "recommended"가 붙은 nvidia-driver-5xx 번호 확인
+sudo apt-get install -y nvidia-driver-<번호>  # 예: nvidia-driver-535. "-server" 변종은 쓰지 않는다(DCV GL에 필요)
+sudo reboot
+```
+
+```bash
+# 재접속 후
+nvidia-smi                                    # GPU 이름(A10G / L40S)과 드라이버 버전이 나와야 한다
+```
+
+| GPU | 최소 드라이버 | 비고 |
+|---|---|---|
+| g5 (A10G) | 535 이상 | CARLA Vulkan 렌더링, DCV 가상 세션 |
+| g6e (L40S) | 535 이상 | torch 2.8 휠에 CUDA 런타임이 들어 있어 CUDA Toolkit은 불필요 |
+
+- 재부팅 뒤에도 `nvidia-smi`가 실패하면 `dmesg | grep -i nvidia`로 모듈 로드 오류를 본다. **Secure Boot가 켜진 AMI**에서는
+  서명되지 않은 모듈이 막혀 실패하는데, EC2에서는 MOK 등록이 어려우므로 Deep Learning Base GPU AMI로 인스턴스를 다시 만드는 쪽이 빠르다.
+- 설치 스크립트(§3.1, §4.1)는 `nvidia-smi`가 없으면 경고만 찍고 계속 진행한다. 경고가 보이면 여기로 돌아온다.
 
 ---
 
@@ -281,6 +330,7 @@ ls runs/$(ls -t runs | head -1)/*.mp4
 
 | # | 항목 | 확인 방법 | 상태 |
 |---|---|---|---|
+| 0 | A·B 모두 `nvidia-smi` 동작 | GPU 이름·드라이버 버전 출력 (§0.2, §2.5) | ☐ |
 | 1 | A·B 같은 커밋 | `git log -1 --oneline` 비교 | ☐ |
 | 2 | `deploy/hosts.env` 양쪽에 작성 | 파일 존재, IP 확인 | ☐ |
 | 3 | A 환경 | `verify-sim-host.sh` → `0 FAIL` | ☐ |
@@ -300,6 +350,8 @@ ls runs/$(ls -t runs | head -1)/*.mp4
 | `setup-inference-host.sh`가 `ensurepip` 오류로 멈춤 | 옛 버전 스크립트 | 최신 커밋으로 `git pull`(uv pip 사용) |
 | `carla` 휠 설치 실패 | PyPI에 해당 Python 휠 없음 | `pip install ~/carla/PythonAPI/carla/dist/carla-0.9.16-*.whl` |
 | `agents.navigation.controller` 없음 | `CARLA_ROOT` 미설정 | `export CARLA_ROOT=~/carla` (bashrc 확인) |
+| `nvidia-smi: command not found` | 일반 Ubuntu AMI라 드라이버 없음 | §2.5 |
+| DCV 웹 접속이 Connecting에서 멈춤 | ① 드라이버 없음(가상 세션이 못 뜸) ② stop/start 뒤 세션 소멸 ③ dcvserver 중지 ④ 공인 IP 변경·8443 미개방 ⑤ 브라우저가 자체 서명 인증서 거부 | ① `nvidia-smi` → §2.5 ② `dcv list-sessions` 비면 `sudo dcv create-session --type virtual --owner ubuntu demo` ③ `sudo systemctl restart dcvserver` ④ 로컬에서 `nc -zv <A 공인 IP> 8443`, §1.2 ⑤ 주소를 직접 열어 경고 수락하거나 네이티브 DCV 클라이언트. 로그 `/var/log/dcv/server.log` |
 | CARLA가 바로 죽음 | Vulkan 없음 / GPU 드라이버 | `sudo apt-get install -y libvulkan1`, `nvidia-smi` 확인 |
 | B `uv sync`에서 flash-attn 빌드 실패 | `nvcc` 없음 | 스크립트가 자동으로 제외. 느리지만 동작 |
 | 모델 다운로드 401/403 | 게이트 미승인 또는 토큰 없음 | 모델 페이지에서 접근 요청, `hf auth login` |

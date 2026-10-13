@@ -4,6 +4,7 @@ set -euo pipefail
 REPO="${REPO:-$HOME/carlamayo}"
 VERSION_DIR="${ALPAMAYO_SUBMODULE:-third_party/alpamayo1.5}"
 
+command -v nvidia-smi >/dev/null 2>&1 || echo "WARN: nvidia-smi not found; install the NVIDIA driver first (docs/distributed/porting-guide.md section 2.5)"
 sudo apt-get update
 sudo apt-get install -y rsync
 cd "$REPO"
