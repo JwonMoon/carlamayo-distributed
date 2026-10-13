@@ -195,6 +195,11 @@ CARLA 서버·B 서버는 지금까지처럼 SSH 터미널(`tmux`)에서 켜고,
 
 두 방식 모두 보통 `:0`이다(콘솔은 항상, 가상은 gdm을 꺼 둔 경우). `carlamayo.py`는 DCV 세션 안의 터미널에서 실행하면 자동으로 맞고,
 SSH 터미널에서 띄우려면 `export DISPLAY=:0`. 다르면 `dcv describe-session simulator-session | grep -i display`로 확인한다.
+
+주의 두 가지:
+- **`~/.bashrc`에 `export DISPLAY=…`를 고정하지 않는다.** 세션 번호는 만들 때마다 달라질 수 있고, 없는 X를 가리키는 `DISPLAY`가 모든 셸에 들어가면
+  CARLA 서버와 `vulkaninfo`가 Signal 11로 죽는다(2026-10 포팅에서 `export DISPLAY=:1`이 원인이었음).
+- `DISPLAY`가 필요한 것은 pygame 창 하나뿐이다. CARLA 서버·B 서버·open-loop·측정은 `DISPLAY` 없이 SSH 터미널(`tmux`)에서 띄운다.
 접속이 Connecting이나 로딩에서 멈추면 §8.
 
 ---
@@ -437,7 +442,20 @@ ls runs/$(ls -t runs | head -1)/*.mp4
 ```
 통과: 차가 움직이고 터미널에 `[Frame k] Inference:`가 반복되며 종료 후 mp4가 있다.
 
-여기까지 되면 포팅 완료다. 이후는 [demo-runbook.md](demo-runbook.md) 순서대로.
+### 6.5 [A] 데모 모드 확인 (약 15분)
+
+데모에서 쓰는 네 모드는 6.4와 다른 코드 경로(비동기 루프, 요청에 실리는 지시·가중치, `AnswerQuestion` RPC, 서버 재시작과 핸드셰이크)를
+타므로 한 번씩 돌려 본다. 각각 1~2분 보고 `Esc`. 모두 DCV 세션 안의 터미널에서(navigation·VQA는 창 입력이 필요).
+`BASE` = `python carlamayo.py --version 1.5 --inference-server <B IP>:50051`. 설명과 팁은 [demo-runbook.md](demo-runbook.md) 4b~7단계.
+
+| 모드 | 명령 | 통과 기준 | runbook |
+|---|---|---|---|
+| 비동기 | `BASE --loop closed --async --run-tag async` | 추론 중에도 화면이 멈추지 않고, 터미널에 `Trajectory age: N.NN s`가 찍힌다 | 4b |
+| navigation + CFG | `BASE --loop closed --mode navigation --navigation-text "Turn right in 30m" --navigation-weight 1.5 --run-tag nav` | 패널에 `Active nav: Turn right in 30m \| weight: 1.50`. 창 입력창에 `Turn left in 20m \| 1.5` Enter → 터미널 `Navigation updated:`. `\| 1.0` Enter로 해제 | 5 |
+| VQA | `BASE --loop closed --mode vqa --vqa-question "What is ahead?" --run-tag vqa` | 차는 정지. 몇 초 뒤 패널 `Answer:`와 터미널 `A:`에 답. 다른 질문 Enter → `VQA question updated:` | 6 |
+| 궤적 샘플 4개 | [B] `tmux attach -t server` → Ctrl+C → `python alpamayo_server.py --version 1.5 --host <B 사설 IP> --port 50051 --num-traj-samples 4` → [A] `BASE --loop closed --run-tag samples4` | 흰 후보선 4개 + 빨간 선 1개, 터미널 `Selected traj sample: k/3`. **끝나면 B를 `--num-traj-samples` 없이 다시 띄운다** | 7 |
+
+여기까지 되면 포팅 완료다. [demo-runbook.md](demo-runbook.md)의 순서를 그대로 쓸 수 있다.
 
 ---
 
@@ -455,6 +473,10 @@ ls runs/$(ls -t runs | head -1)/*.mp4
 | 7 | 실제 서버 SERVING | `verify-inference-host.sh --serving` | ☐ |
 | 8 | 원격 open-loop | mp4 + `summary.md` | ☐ |
 | 9 | closed-loop | 주행 + mp4 | ☐ |
+| 10 | 비동기 (§6.5) | `Trajectory age:` 출력, 화면 안 멈춤 | ☐ |
+| 11 | navigation + CFG (§6.5) | `Active nav:` 패널, 창 입력 뒤 `Navigation updated:` | ☐ |
+| 12 | VQA (§6.5) | 정지 상태에서 `Answer:` | ☐ |
+| 13 | 궤적 샘플 4개 (§6.5) | 흰 후보선 4개, `Selected traj sample: k/3`, 끝나면 B 기본 재시작 | ☐ |
 
 ---
 
@@ -473,7 +495,7 @@ ls runs/$(ls -t runs | head -1)/*.mp4
 | journal에 `type 'wayland'`, `Running GNOME Shell ... as a Wayland display server` (콘솔 세션, `WaylandEnable=false`인데도) | 그 OS의 GNOME(50, 26.04)이 X11 미지원. 콘솔 세션 불가 | 방식 B(§1.4.3)로. 또는 A를 22.04/24.04 AMI로 다시 만든다 |
 | 가상 세션이 만들어진 직후 사라짐 (`create-session` 뒤 `list-sessions` 비어 있음) | 세션 안 데스크톱이 바로 종료. `dcv-xsession.*.log`에 `Init script exited normally` | XFCE 설치 + `/etc/dcv/dcvsessioninit`에 `exec startxfce4`(§1.4.3). GNOME은 Xdcv 위에서 안 뜬다 |
 | `nvidia-smi: command not found` 인데 DCV만 문제 | 드라이버는 CARLA용. DCV 가상 세션은 드라이버 없이도 뜸 | 원인을 DCV 쪽(위 행들)에서 찾는다. 드라이버는 §2.5에서 어차피 깐다 |
-| CARLA가 바로 죽음 | Vulkan 없음 / GPU 드라이버 | `sudo apt-get install -y libvulkan1`, `nvidia-smi` 확인 |
+| CARLA가 뜨자마자 `Signal 11 caught` / `Segmentation fault` | **`DISPLAY`가 존재하지 않는 X를 가리킴**(예: `~/.bashrc`의 `export DISPLAY=:1`인데 가상 세션은 `:0`, 또는 세션이 없음). 2026-10 포팅에서 겪음. 드물게 Vulkan ICD·라이브러리 누락 | `echo $DISPLAY`와 `dcv describe-session simulator-session`의 `X display`를 대조. CARLA 서버는 `unset DISPLAY` 뒤 띄운다. bashrc의 고정 `DISPLAY` 줄 삭제. 그래도 죽으면 `DISPLAY= vulkaninfo --summary`에 NVIDIA가 나오는지, `ldd ~/carla/CarlaUE4/Binaries/Linux/CarlaUE4-Linux-Shipping \| grep 'not found'`가 비는지, `~/.config/Epic/CarlaUE4/Saved/Logs/CarlaUE4.log` 끝부분 |
 | B `uv sync`에서 flash-attn 빌드 실패 | `nvcc` 없음 | 스크립트가 자동으로 제외. 느리지만 동작 |
 | 모델 다운로드 401/403 | 게이트 미승인 또는 토큰 없음 | 모델 페이지에서 접근 요청, `hf auth login` |
 | `no inference server at …:50051 after 30s` | B 서버 안 뜸 / 보안그룹 / 프록시 | §5 표 |

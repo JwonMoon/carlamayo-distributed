@@ -132,6 +132,7 @@ scp -i <pem> -r <user>@<A 공인 IP>:~/carlamayo/runs/<run_id> ./results/
 | `serves Alpamayo '2' but --version '1.5'` / `NUM_FRAMES: client != server` | A·B의 `--version` 또는 커밋 불일치. 둘 다 `git pull` 후 맞춤 |
 | pygame 창이 안 뜸 | SSH 터미널에서 실행함. DCV 세션 안의 터미널에서 치거나 `export DISPLAY=:0`(다르면 `dcv describe-session <세션>`). 창 없이 보려면 `--no-pygame-ui` |
 | DCV 웹 접속이 Connecting·로딩에서 멈춤 | [A] `dcv list-sessions`가 비면(stop/start 뒤 흔함) `start_dcv`. 그래도 안 되면 `sudo systemctl status dcvserver`·보안그룹 8443 확인, 주소를 직접 열어 인증서 경고 수락 또는 네이티브 DCV 클라이언트. 세션 방식(콘솔/가상)은 §1 표 참조 |
+| CARLA가 뜨자마자 `Signal 11` / `Segmentation fault` | 셸의 `DISPLAY`가 없는 X를 가리킴. `unset DISPLAY` 뒤 CARLA를 띄우고, `~/.bashrc`에 `export DISPLAY`가 있으면 지운다 |
 | 영상이 없음 | 강제 종료(창 닫기·kill). `Esc`/Ctrl+C로 끝낸다 |
 | 주행이 흔들리고 늦게 반응 | `--async`를 썼거나 navigation 지시가 남아 있음. 동기로 돌리고 `\| 1.0` Enter로 지시 해제 |
 

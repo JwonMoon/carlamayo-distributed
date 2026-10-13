@@ -280,6 +280,7 @@ scp -r ubuntu@<B>:~/carlamayo/runs/<run_id> ./results/     # B 로컬 open-loop 
 | pygame 창이 안 뜸 | DCV 세션 밖(SSH)에서 실행 | DCV 세션 안의 터미널에서 실행하거나 `export DISPLAY=:0`(콘솔·가상 모두 보통 `:0`. 다르면 `dcv describe-session <세션>`), 또는 `--no-pygame-ui` |
 | `agents.navigation.controller` 없음 | `CARLA_ROOT` 미설정 | `export CARLA_ROOT=~/carla` |
 | DCV 웹 접속이 Connecting·로딩에서 멈춤 | 세션 없음(stop/start 뒤), 데스크톱 환경 없음, OS에 안 맞는 세션 방식(26.04는 가상 세션만), dcvserver 중지, 8443·공인 IP, 인증서 경고 미수락 | [A] `start_dcv`(세션 재생성); `sudo systemctl restart dcvserver`; 주소를 직접 열어 인증서 경고 수락 또는 네이티브 클라이언트. 방식별 절차와 원인 표는 [porting-guide.md](porting-guide.md) §1.4·§8 |
+| CARLA가 뜨자마자 `Signal 11` / `Segmentation fault` | `DISPLAY`가 없는 X를 가리킴(bashrc 고정값, 세션 없음) | `unset DISPLAY` 뒤 CARLA 기동. bashrc의 `export DISPLAY` 줄 삭제. 상세는 [porting-guide.md](porting-guide.md) §8 |
 | 영상이 없음 | 종료를 강제로 함(창 닫기·kill·세션 끊김) | `Esc` 또는 Ctrl+C로 종료. 폴더는 `runs/<run_id>/` |
 | 주행이 흔들리고 늦게 반응 | 비동기 모드의 궤적 나이, 또는 지워지지 않은 navigation 지시 | 동기 모드로 / 지시 해제(`| 1.0` Enter) |
 | 차가 안 움직임 | navigation/vqa 모드에서 정지 시작, 또는 궤적 나이 6 s 초과 안전장치 | `Ctrl+P`로 출발 / B 서버·네트워크 확인 |
