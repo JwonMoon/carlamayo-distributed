@@ -128,8 +128,8 @@ This fork runs the simulator and the model on different machines, so the upstrea
 
 ```bash
 # Sim host
-python3.10 -m venv venv-sim && source venv-sim/bin/activate
-pip install -r requirements-sim.txt
+uv venv venv-sim --python 3.12 && source venv-sim/bin/activate   # carla wheel: Python 3.10-3.12 only
+uv pip install -r requirements-sim.txt
 export CARLA_ROOT=~/carla
 
 # Inference host (after §2)

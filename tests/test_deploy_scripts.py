@@ -18,11 +18,13 @@ def test_script_syntax(script):
     subprocess.run(["bash", "-n", str(script)], check=True)
 
 
-def test_sim_setup_does_not_pin_python310():
-    """Ubuntu 24.04 has no python3.10 package; the script must pick whatever 3.10+ interpreter exists."""
+def test_sim_setup_uses_uv_python312():
+    """The carla 0.9.16 wheel exists for Python 3.10-3.12 only, and Ubuntu 24.04/26.04 ship newer
+    system Pythons, so the venv must come from a uv-managed 3.12 and downloads must fail loudly."""
     text = (ROOT / "deploy" / "scripts" / "setup-sim-host.sh").read_text()
-    assert "apt-get install -y python3.10" not in text and "python3.10 -m venv" not in text
-    assert '"$PY" -m venv venv-sim' in text
+    assert "uv venv venv-sim --python 3.12" in text
+    assert "uv pip install -r requirements-sim.txt" in text
+    assert "python3.10" not in text and "wget -q" not in text
 
 
 def test_hosts_env_example_has_required_keys():

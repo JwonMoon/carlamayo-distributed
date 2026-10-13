@@ -1,5 +1,6 @@
 # Sim host (CARLA server + carlamayo.py client). No torch, no model packages.
-# python3 -m venv venv-sim && pip install -r requirements-sim.txt   (Python 3.10-3.12)
+# uv venv venv-sim --python 3.12 && VIRTUAL_ENV=$PWD/venv-sim uv pip install -r requirements-sim.txt
+# (carla 0.9.16 wheels exist for Python 3.10-3.12 only; deploy/scripts/setup-sim-host.sh does this)
 numpy>=1.26
 opencv-python>=4.10
 pygame>=2.6

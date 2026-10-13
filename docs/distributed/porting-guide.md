@@ -44,6 +44,7 @@ A에서 pygame 창을 DCV로 볼 계획이면 **Ubuntu 버전이 DCV 세션 방�
 | 24.04 LTS | 46 | 가능 | 가능 |
 | **26.04 LTS** | **50** | **불가.** GNOME 50은 X11 세션을 지원하지 않아 `WaylandEnable=false`를 줘도 Wayland로만 뜨고 DCV가 중계하지 못한다 | 가능 (현재 환경, §1.4 방식 B) |
 
+Python은 OS 기본 버전을 쓰지 않는다. 설치 스크립트가 `uv`로 3.12를 내려받아 venv를 만들므로(A `venv-sim`, B `a_venv`) 26.04의 3.14도 문제 없다.
 B에서 flash-attn을 빌드하려면 CUDA Toolkit(`nvcc`)이 있어야 하지만, 없으면 자동으로 SDPA 폴백을 쓴다(느릴 뿐 동작).
 
 ### 0.3 계정·권한
@@ -255,7 +256,7 @@ cd ~/carlamayo && deploy/scripts/setup-sim-host.sh
 source ~/.bashrc            # CARLA_ROOT 반영
 ```
 
-스크립트가 하는 일: `python3`(3.10이 있으면 3.10, 24.04면 시스템 3.12. carla 휠은 3.10~3.12 지원), `ffmpeg`, `libvulkan1`, `rsync`, `netcat` 설치 → CARLA 0.9.16 바이너리를 `~/carla`에 풀기 →
+스크립트가 하는 일: `ffmpeg`, `libvulkan1`, `rsync`, `netcat`, `curl` 설치 → `uv`로 **Python 3.12** 내려받아 `venv-sim` 생성(OS 기본 Python과 무관. carla 휠은 3.10~3.12만 있고 26.04는 3.14) → CARLA 0.9.16 바이너리를 `~/carla`에 풀기 →
 `CARLA_ROOT` 등록 → `venv-sim`(torch 없음) 생성 후 `requirements-sim.txt` 설치.
 `carla` 휠이 PyPI에 없다고 나오면 안내대로 `pip install ~/carla/PythonAPI/carla/dist/carla-0.9.16-*.whl`.
 
@@ -429,7 +430,8 @@ ls runs/$(ls -t runs | head -1)/*.mp4
 | 증상 | 원인 | 조치 |
 |---|---|---|
 | `setup-inference-host.sh`가 `ensurepip` 오류로 멈춤 | 옛 버전 스크립트 | 최신 커밋으로 `git pull`(uv pip 사용) |
-| `carla` 휠 설치 실패 | PyPI에 해당 Python 휠 없음 | `pip install ~/carla/PythonAPI/carla/dist/carla-0.9.16-*.whl` |
+| `setup-sim-host.sh`가 apt 뒤 조용히 끝남, `~/carla/carla-0.9.16.tar.gz`가 0바이트 | CARLA 다운로드 실패(옛 스크립트는 오류를 숨겼음) | `git pull` 후 재실행하면 오류가 보인다. 그래도 안 받아지면 브라우저로 CARLA 0.9.16 Linux를 받아 `scp`로 `~/carla/carla-0.9.16.tar.gz`에 올리고 재실행 |
+| `carla` 휠 설치 실패 | PyPI에 해당 Python 휠 없음(venv가 3.12가 아님) | `ls venv-sim/bin/python* && venv-sim/bin/python --version`이 3.12인지. 아니면 `rm -rf venv-sim` 후 스크립트 재실행. 그래도 안 되면 `VIRTUAL_ENV=$PWD/venv-sim uv pip install ~/carla/PythonAPI/carla/dist/carla-0.9.16-*.whl` |
 | `agents.navigation.controller` 없음 | `CARLA_ROOT` 미설정 | `export CARLA_ROOT=~/carla` (bashrc 확인) |
 | `nvidia-smi: command not found` | 일반 Ubuntu AMI라 드라이버 없음 | §2.5 |
 | DCV 웹 접속이 Connecting·로딩에서 멈춤 (로그인 창도 안 나옴) | 8443 미개방·공인 IP 변경, dcvserver 중지, 브라우저가 자체 서명 인증서 거부 | 로컬에서 `nc -zv <A 공인 IP> 8443`(§1.2); `sudo systemctl restart dcvserver`; 주소를 직접 열어 경고 수락하거나 네이티브 DCV 클라이언트 |
