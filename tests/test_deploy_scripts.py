@@ -18,6 +18,13 @@ def test_script_syntax(script):
     subprocess.run(["bash", "-n", str(script)], check=True)
 
 
+def test_sim_setup_does_not_pin_python310():
+    """Ubuntu 24.04 has no python3.10 package; the script must pick whatever 3.10+ interpreter exists."""
+    text = (ROOT / "deploy" / "scripts" / "setup-sim-host.sh").read_text()
+    assert "apt-get install -y python3.10" not in text and "python3.10 -m venv" not in text
+    assert '"$PY" -m venv venv-sim' in text
+
+
 def test_hosts_env_example_has_required_keys():
     text = (ROOT / "deploy" / "hosts.env.example").read_text()
     for key in ("SIM_HOST_IP", "INFERENCE_HOST_IP", "INFERENCE_PORT", "INFERENCE_SSH_USER", "REMOTE_REPO"):

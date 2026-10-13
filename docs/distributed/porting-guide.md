@@ -32,8 +32,8 @@ CARLA 바이너리 다운로드가 대부분). 각 절 끝의 **확인** 명령�
 
 | AMI | 드라이버 | 할 일 |
 |---|---|---|
-| **AWS Deep Learning Base GPU AMI (Ubuntu 22.04)** (권장) | 들어 있음 | §2.5 건너뜀 |
-| 일반 **Ubuntu 22.04** AMI (생 인스턴스) | 없음. `nvidia-smi: command not found` | **§2.5에서 드라이버를 먼저 깐다.** 드라이버 없이는 CARLA(Vulkan)도 DCV 가상 세션도 안 뜬다 |
+| **AWS Deep Learning Base GPU AMI (Ubuntu 22.04 또는 24.04)** (권장) | 들어 있음 | §2.5 건너뜀 |
+| 일반 **Ubuntu 22.04 / 24.04** AMI (생 인스턴스) | 없음. `nvidia-smi: command not found` | **§2.5에서 드라이버를 먼저 깐다.** 드라이버 없이는 CARLA(Vulkan)도 DCV 가상 세션도 안 뜬다 |
 
 B에서 flash-attn을 빌드하려면 CUDA Toolkit(`nvcc`)이 있어야 하지만, 없으면 자동으로 SDPA 폴백을 쓴다(느릴 뿐 동작).
 
@@ -100,15 +100,15 @@ pygame 창을 보려면 A에 DCV 서버를 설치하고 **가상 세션**을 만
 - NVIDIA 드라이버(§2.5). DCV 가상 세션 자체는 GPU 없이도 뜨지만 CARLA가 드라이버를 요구하므로 어차피 먼저 깐다.
 - **데스크톱 환경.** 서버 AMI에는 없고, 없으면 세션이 만들어져도 화면이 무한 로딩이다. 아래 1)에서 깐다.
 
-**설치 순서 (Ubuntu 22.04, 약 15분)**
+**설치 순서 (Ubuntu 22.04 / 24.04, 약 15분)**
 
 ```bash
 # [A]  1) 데스크톱 환경 (가상 세션이 띄울 GNOME)
 sudo apt-get update && sudo apt-get install -y ubuntu-desktop-minimal
 
-# 2) DCV 패키지: AWS "NICE DCV 다운로드" 페이지에서 Ubuntu 22.04 x86_64 tgz 주소를 복사해 넣는다
+# 2) DCV 패키지: AWS "NICE DCV 다운로드" 페이지에서 자기 Ubuntu 버전(2204 또는 2404) x86_64 tgz 주소를 복사해 넣는다
 cd /tmp && wget https://d1uj6qtbmh3dt5.cloudfront.net/NICE-GPG-KEY && gpg --import NICE-GPG-KEY
-wget <nice-dcv-<버전>-ubuntu2204-x86_64.tgz 주소> && tar xzf nice-dcv-*-ubuntu2204-x86_64.tgz && cd nice-dcv-*-x86_64
+wget <nice-dcv-<버전>-ubuntu<2204|2404>-x86_64.tgz 주소> && tar xzf nice-dcv-*-ubuntu*-x86_64.tgz && cd nice-dcv-*-x86_64
 sudo apt-get install -y ./nice-dcv-server_*.deb ./nice-xdcv_*.deb ./nice-dcv-gl_*.deb ./nice-dcv-web-viewer_*.deb
 #   nice-xdcv = 가상 세션용 X 서버(필수), nice-dcv-gl = 세션 안 GL 가속(선택, pygame에는 불필요)
 
@@ -198,7 +198,7 @@ cd ~/carlamayo && deploy/scripts/setup-sim-host.sh
 source ~/.bashrc            # CARLA_ROOT 반영
 ```
 
-스크립트가 하는 일: `python3.10`, `ffmpeg`, `libvulkan1`, `rsync`, `netcat` 설치 → CARLA 0.9.16 바이너리를 `~/carla`에 풀기 →
+스크립트가 하는 일: `python3`(3.10이 있으면 3.10, 24.04면 시스템 3.12. carla 휠은 3.10~3.12 지원), `ffmpeg`, `libvulkan1`, `rsync`, `netcat` 설치 → CARLA 0.9.16 바이너리를 `~/carla`에 풀기 →
 `CARLA_ROOT` 등록 → `venv-sim`(torch 없음) 생성 후 `requirements-sim.txt` 설치.
 `carla` 휠이 PyPI에 없다고 나오면 안내대로 `pip install ~/carla/PythonAPI/carla/dist/carla-0.9.16-*.whl`.
 

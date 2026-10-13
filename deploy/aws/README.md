@@ -10,7 +10,7 @@
 
 ## AMI / 드라이버
 
-- 두 인스턴스 모두 NVIDIA 드라이버가 설치된 이미지(Deep Learning AMI 또는 Ubuntu 22.04 +
+- 두 인스턴스 모두 NVIDIA 드라이버가 설치된 이미지(Deep Learning AMI 또는 Ubuntu 22.04/24.04 +
   드라이버). `nvidia-smi`가 동작해야 한다.
 - A: CARLA 0.9.16(UE4)은 **Vulkan** 런타임이 필요하다(`sudo apt-get install -y libvulkan1`).
   NICE DCV 가상 세션이 pygame 창을 표시한다.
