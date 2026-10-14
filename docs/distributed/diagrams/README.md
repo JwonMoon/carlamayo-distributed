@@ -19,7 +19,9 @@ GitHub에서 문서를 열면 같은 그림이 바로 보인다. SVG는 Mermaid�
 
 | 파일 | 출처 | 보여주는 것 | 읽는 법 |
 |---|---|---|---|
-| `handover-overview.svg` (`.png`, 소스 `.mmd`) | §2 | 받는 사람용 한 장 그림. A(CARLA 시뮬레이터 → 인터페이스 `carlamayo.py`)와 B(추론 서버 → Alpamayo 1.5 모델), 그 사이 ① 요청/② 응답, 운영자 PC의 DCV·SSH 접속 | 요소 5개만 둔 개요도. 상세는 `split-deployment.svg`·`stack-deployment.svg`. PNG는 콜랩 페이지 첨부용 |
+| `handover-overview.svg` (`.png`, 소스 `.mmd`) | §2 | 받는 사람용 한 장 그림. A(CARLA 시뮬레이터 → 인터페이스)와 B(추론 서버 → Alpamayo 1.5 모델), 그 사이 ① 요청/② 응답, 운영자 PC의 DCV·SSH 접속 | 요소 5개만 둔 개요도. 상세는 `split-deployment.svg`·`stack-deployment.svg`. PNG는 콜랩 페이지 첨부용 |
+| `timeline-closed-loop-sync.svg` (`.png`, `.mmd`) | §1.4 | 동기 모드 한 사이클의 실제 시간 타임라인: tick(세계 +0.1 s) → 카메라 수집 → ① 전송 0.3 s → 모델 추론 ~2 s → ② 수신·제어 → 다음 tick. 추론 동안 세계 정지 | 가로축 눈금 1 = 0.1초. 세계 시간은 tick 막대에서만 진행 |
+| `timeline-closed-loop-async.svg` (`.png`, `.mmd`) | §1.4 | 비동기 모드: tick 연속(10 Hz), 요청은 1초 규칙으로 제출, 응답이 온 다음 tick부터 새 궤적. 마지막 행이 "제어에 쓰는 궤적"과 그 나이 | 같은 축. 궤적 나이가 응답 간격만큼 커지는 것을 보여줌 |
 
 ## 분리 후 구조 (`distributed-architecture.md`)
 

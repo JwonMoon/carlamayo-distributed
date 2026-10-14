@@ -1,0 +1,23 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Noto Sans CJK KR, sans-serif", "fontSize": "14px"}, "gantt": {"barHeight": 22, "barGap": 6, "topPadding": 40, "leftPadding": 150, "rightPadding": 20, "gridLineStartPadding": 0, "numberSectionStyles": 4, "useWidth": 1400}}}%%
+gantt
+  title 비동기 모드 (--async) — tick은 계속, 요청은 1초에 한 번, 궤적은 응답 시점에 교체  (가로축 = 실제 시간, 눈금 1 = 0.1초, 25 = 2.5초)
+  dateFormat  s
+  axisFormat  %S
+  tickInterval 1second
+  section 세계 시간
+  tick 매 0.1 s, 세계 연속 진행 (10 Hz)   :crit, t, 0, 50
+  section 카메라 수집
+  매 tick 4장 수집, 최근 4프레임 유지     :active, c, 0, 50
+  section 요청·전송 (A→B)
+  ① 요청 1 (1 s 규칙·미완료 없음)  :n1, 0, 3
+  ① 요청 2                          :n2, 25, 28
+  section 모델 추론 (B)
+  추론 ~2 s                         :m1, 3, 23
+  추론 ~2 s                         :m2, 28, 48
+  section 응답·제어 (B→A)
+  ② 수신, 다음 tick부터 새 궤적     :crit, r1, 23, 24
+  ② 수신, 새 궤적                   :crit, r2, 48, 49
+  section 제어에 쓰는 궤적
+  이전 궤적으로 PID (시작 직후는 정지) :done, u0, 0, 24
+  궤적 1 사용 — 나이 0 → 2.5 s      :u1, 24, 49
+  궤적 2 사용                        :u2, 49, 50

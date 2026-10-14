@@ -14,7 +14,7 @@ flowchart LR
     MODEL["Alpamayo 1.5 모델<br/>GPU 상주 (약 22 GB)"]
     SRV <-- "이미지 · 지시 · 질문 / 궤적 · 답변" --> MODEL
   end
-  CLI <== "① 요청: 카메라 4장 × 4프레임, 5~8 MB, 1초에 한 번<br/>② 응답: 궤적 64점, 10 KB 미만" ==> SRV
+  CLI <== "① 요청 (카메라 4장 × 4프레임, 5~8 MB)<br/>동기 모드 매 tick · 비동기 모드 1초마다<br/>② 응답 (궤적 64점, 10 KB 미만)" ==> SRV
   OP -. "DCV 8443: 주행 화면" .-> A
   OP -. "SSH 22" .-> B
   style OP fill:#fff7e6,stroke:#E0762B,stroke-width:2px

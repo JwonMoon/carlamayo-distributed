@@ -1,0 +1,25 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Noto Sans CJK KR, sans-serif", "fontSize": "14px"}, "gantt": {"barHeight": 22, "barGap": 6, "topPadding": 40, "leftPadding": 150, "rightPadding": 20, "gridLineStartPadding": 0, "numberSectionStyles": 4, "useWidth": 1400}}}%%
+gantt
+  title 동기 모드 (기본) — 요청은 매 tick, 응답이 올 때까지 세계 정지  (가로축 = 실제 시간, 눈금 1 = 0.1초, 25 = 2.5초)
+  dateFormat  s
+  axisFormat  %S
+  tickInterval 1second
+  section 세계 시간
+  tick 1 → 세계 +0.1 s          :crit, t1, 0, 1
+  (정지)                         :done, p1, 1, 25
+  tick 2 → 세계 +0.1 s          :crit, t2, 25, 26
+  (정지)                         :done, p2, 26, 50
+  tick 3 → 세계 +0.1 s          :crit, t3, 50, 51
+  section 카메라 수집
+  4장 수집 → 최근 4프레임 버퍼  :active, c1, 0, 1
+  4장 수집 → 버퍼 갱신          :active, c2, 25, 26
+  4장 수집 → 버퍼 갱신          :active, c3, 50, 51
+  section 요청·전송 (A→B)
+  ① JPEG 인코딩·gRPC 전송 0.3 s :n1, 1, 4
+  ① JPEG 인코딩·gRPC 전송 0.3 s :n2, 26, 29
+  section 모델 추론 (B)
+  Alpamayo 추론 ~2 s            :m1, 4, 24
+  Alpamayo 추론 ~2 s            :m2, 29, 49
+  section 응답·제어 (B→A)
+  ② 궤적 수신 → PID 제어 적용   :crit, r1, 24, 25
+  ② 궤적 수신 → PID 제어 적용   :crit, r2, 49, 50

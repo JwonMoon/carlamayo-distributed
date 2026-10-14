@@ -338,6 +338,10 @@ NICE DCV가 A에 이미 설정되어 있으므로 그것을 쓴다.
 | 비용 | GPU 1대 상시 | GPU 2대. 필요 없을 때 각각 정지 가능(예: open-loop만 할 때 A 정지) |
 | 사용자 조작 | CLI + pygame | 동일 + `--inference-server` 플래그. 서버 기동 절차 추가 |
 
+요청 주기와 tick의 관계(동기: 매 tick, 비동기: 1초에 한 번)와 분산이 더한 왕복 시간을 실제 시간 축에 그린 그림은
+[diagrams/timeline-closed-loop-sync.svg](diagrams/timeline-closed-loop-sync.svg), [diagrams/timeline-closed-loop-async.svg](diagrams/timeline-closed-loop-async.svg)
+([user-guide.md §1.4](user-guide.md)에서 설명).
+
 ---
 
 ## 7. 인터페이스 계약 (`module/remote/alpamayo_inference.proto`)
