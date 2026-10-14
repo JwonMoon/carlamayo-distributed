@@ -1,13 +1,13 @@
 # Carlamayo 분산 데모 환경 사용 설명서
 
 본 문서는 구성과 검증이 완료된 인스턴스 두 대를 인계받아 데모를 운영하는 담당자를 대상으로, 운영 절차와 각 단계의 정상 동작 기준을 기술한다.
-환경 구성 절차는 [porting-guide.md](porting-guide.md)를, 실행 옵션 전체는 [demo-runbook.md](demo-runbook.md)를 참조한다. 본문의 `<...>`는 해당 환경의 값으로 대체한다.
+환경 구성 절차는 [porting-guide.md](porting-guide.md)를, 실행 옵션 전체는 [demo-runbook.md](demo-runbook.md)를 참조한다.
 
 | 항목 | 내용 |
 |---|---|
-| 담당자 / 문의 | `<이름, 연락처>` |
+| 담당자 / 문의 | 문지원, jiwon817.moon@lge.com |
 | 저장소 | https://github.com/JwonMoon/carlamayo-distributed (`main` 브랜치. 두 인스턴스 모두 `~/carlamayo`에 클론되어 있음) |
-| 인계일 | `<날짜>` |
+| 인계 문서 작성일 | 2026.10.14 |
 
 ---
 
@@ -88,14 +88,18 @@ python alpamayo_server.py --version 1.5 --host 172.31.31.226 --port 50051
 start_dcv        # DCV 세션을 확인하고, 없으면 생성한다. 인스턴스 stop/start 후에는 세션이 사라지므로 매번 실행한다
 ```
 
-브라우저에서 `https://<A 공인 IP>:8443`에 접속한다. 자체 서명 인증서 경고는 최초 1회 수락한다. 계정 `ubuntu`, 비밀번호 `lge123`으로 로그인하면 바탕화면이 표시된다.
+브라우저에서 아래 주소로 접속해 로그인하면 바탕화면이 표시된다.
+- 접속 주소: `https://<A 공인 IP>:8443`
+- 계정: `ubuntu`
+- 비밀번호: `lge123`
+
 터미널은 상단 패널의 터미널 아이콘 또는 바탕화면 우클릭 → Applications → Terminal Emulator로 연다.
 
 **정상 동작 기준**
 - `start_dcv` 출력에 `Session: 'simulator-session' ... type:virtual`이 표시된다.
 - 브라우저에 바탕화면과 터미널이 표시되고, 해당 터미널에서 `echo $DISPLAY`가 `:0`을 출력한다.
 
-**알려진 제약.** 본 환경은 Ubuntu 26.04라 DCV를 가상 세션(XFCE)으로만 쓸 수 있다. 26.04의 GNOME 50이 X11 세션을 지원하지 않아 GPU 화면을 직접 중계하는 콘솔 세션이 동작하지 않기 때문이다.
+**현재 인스턴스의 제약.** 본 환경은 Ubuntu 26.04라 DCV를 가상 세션(XFCE)으로만 쓸 수 있다. 26.04의 GNOME 50이 X11 세션을 지원하지 않아 GPU 화면을 직접 중계하는 콘솔 세션이 동작하지 않기 때문이다.
 가상 세션은 소프트웨어 렌더링이라 화면 반응이 느리고 터미널 입력이 밀리는 등 사용성이 떨어진다. 개선하려면 A를 Ubuntu 22.04 또는 24.04로 재구성하여 콘솔 세션(GNOME, GPU 직접 렌더링)을 쓴다([porting-guide.md](porting-guide.md) §0.2, §1.4.2).
 
 ### 3.3 [A] CARLA 서버 실행
@@ -166,7 +170,7 @@ sed -n 1,30p runs/$RUN/summary.md
 
 측정이 필요 없으면 실행 명령에 `--no-profile`을 추가한다. 프로파일 CSV를 기록하지 않으며, 영상과 로그가 담기는 결과 폴더 `runs/<run_id>/`는 그대로 생성된다.
 
-결과 회수: 로컬 PC에서 `scp -i <pem> -r ubuntu@<A 공인 IP>:~/carlamayo/runs/<run_id> ./results/`
+결과 회수: 로컬 PC에서 `scp -i vs-advancesw.pem -r ubuntu@<A 공인 IP>:~/carlamayo/runs/<run_id> ./results/`
 
 ### 3.8 종료
 

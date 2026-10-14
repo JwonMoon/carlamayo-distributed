@@ -17,7 +17,7 @@
 > Each card covers architecture, inputs/outputs, licensing, and tested hardware. This
 > repository focuses on CARLA setup, data collection, and open/closed/live-open inference.
 
-## 이 포크에 대하여 (carlamayo-distributed)
+## 이 저장소에 대하여
 
 CARLA와 Alpamayo의 연동을 테스트하기 위해 오픈소스 [aveeslab/Carlamayo](https://github.com/aveeslab/Carlamayo)를 가져와,
 한 머신에서 함께 돌리던 **CARLA 시뮬레이터와 Alpamayo 추론 모델을 서로 다른 인스턴스에서 실행**하도록 개조한 저장소다.
@@ -26,7 +26,7 @@ CARLA와 Alpamayo의 연동을 테스트하기 위해 오픈소스 [aveeslab/Car
 
 > - **구성된 인스턴스를 받아 데모를 돌리려는 분**: [docs/distributed/user-guide.md](docs/distributed/user-guide.md)
 > - **환경 구성 절차**(새 인스턴스 두 대에 처음부터): [docs/distributed/porting-guide.md](docs/distributed/porting-guide.md)
-> - **데모 당일 순서와 모든 실행 옵션**: [docs/distributed/demo-runbook.md](docs/distributed/demo-runbook.md)
+> - **데모 실행 순서 및 옵션**: [docs/distributed/demo-runbook.md](docs/distributed/demo-runbook.md)
 
 | 문서 | 내용 |
 |---|---|
